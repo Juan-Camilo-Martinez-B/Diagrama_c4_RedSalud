@@ -1,0 +1,3185 @@
+{
+  "formato": "processflow-board/v1",
+  "proyecto": {
+    "nombre_proyecto": "RedSalud Andina · BPMN",
+    "version": "1.0.0",
+    "notation": "bpmn",
+    "fecha_analisis": "2026-11-07",
+    "big_picture": {
+      "descripcion": "Vista principal del taller: pool de RedSalud Andina con sus carriles, tres pools externos y los cuatro subprocesos enlazados por viewRef.",
+      "hotspots": [
+        "Vista DDD / Event Storming del mismo proyecto aún no está en este archivo: el bloque 7 exige contrastar cada tarea contra ella",
+        "Orden de Consultar historial dentro del flujo global: aquí va antes de Atender; ajustable según el equipo"
+      ],
+      "nodos": [],
+      "aristas": [
+        {
+          "fuente": "pl-agendar",
+          "destino": "pl-historial",
+          "descripcion": "",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-historial",
+          "destino": "pl-atender",
+          "descripcion": "",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-atender",
+          "destino": "pl-prescribir",
+          "descripcion": "",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-prescribir",
+          "destino": "pl-fin",
+          "descripcion": "",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-agendar",
+          "destino": "pl-pac",
+          "descripcion": "mensaje: cita confirmada",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-pac",
+          "destino": "pl-atender",
+          "descripcion": "mensaje: asistencia",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-historial",
+          "destino": "pl-leg",
+          "descripcion": "mensaje: consulta [SOAP]",
+          "routing": "orthogonal"
+        },
+        {
+          "fuente": "pl-prescribir",
+          "destino": "pl-farm",
+          "descripcion": "mensaje: receta firmada",
+          "routing": "orthogonal"
+        }
+      ]
+    },
+    "agregados": [
+      {
+        "nombre_agregado": "Centro rural",
+        "entidad_raiz": "Carril de los 14 centros rurales: origen y cierre de la interconsulta.",
+        "descripcion": "Carril de los 14 centros rurales: origen y cierre de la interconsulta.",
+        "nodos": [
+          {
+            "id": "pl-inicio",
+            "nombre": "Interconsulta pedida",
+            "tipo_elemento": "Evento de Inicio",
+            "descripcion": "El centro rural detecta la necesidad de una interconsulta de especialidad.",
+            "fuente": "Taller BPMN.pdf:Bloque 2",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "x": 110,
+            "y": 90,
+            "width": 150,
+            "height": 70
+          },
+          {
+            "id": "pl-agendar",
+            "nombre": "Agendar teleconsulta",
+            "tipo_elemento": "Subproceso",
+            "descripcion": "Del pedido del centro a la cita confirmada, con gateways de disponibilidad. Detalle en la vista BPMN 1.",
+            "fuente": "Taller BPMN.pdf:Bloque 3",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "metadata": [
+              {
+                "clave": "contextos",
+                "valor": "Interconsulta, Agenda, Auditoría",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "b9025f6d-ef21-4508-b062-786249bcff2b",
+            "x": 305,
+            "y": 80,
+            "width": 190,
+            "height": 90
+          },
+          {
+            "id": "pl-fin",
+            "nombre": "Fin (atendida)",
+            "tipo_elemento": "Evento de Fin",
+            "descripcion": "La interconsulta fue atendida y la receta emitida.",
+            "fuente": "Taller BPMN.pdf:Bloque 2",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "x": 1185,
+            "y": 90,
+            "width": 150,
+            "height": 70
+          }
+        ],
+        "aristas": [
+          {
+            "fuente": "pl-inicio",
+            "destino": "pl-agendar",
+            "descripcion": "",
+            "routing": "orthogonal"
+          }
+        ],
+        "x": 60,
+        "y": 60,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Carril",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Especialista",
+        "entidad_raiz": "Carril de los 9 especialistas itinerantes.",
+        "descripcion": "Carril de los 9 especialistas itinerantes.",
+        "nodos": [
+          {
+            "id": "pl-historial",
+            "nombre": "Consultar historial",
+            "tipo_elemento": "Subproceso",
+            "descripcion": "Lectura del historial del legado desde la vista propia o por SOAP. Detalle en la vista BPMN 4.",
+            "fuente": "Taller BPMN.pdf:Bloque 6",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "metadata": [
+              {
+                "clave": "contextos",
+                "valor": "Identidad y acceso, Integración legado, Auditoría",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "97aecd60-9e89-4b44-809c-c4f7ce06a609",
+            "x": 520,
+            "y": 250,
+            "width": 190,
+            "height": 90
+          },
+          {
+            "id": "pl-prescribir",
+            "nombre": "Prescribir receta",
+            "tipo_elemento": "Subproceso",
+            "descripcion": "Firma como compuerta dura y envío asíncrono a farmacia. Detalle en la vista BPMN 3.",
+            "fuente": "Taller BPMN.pdf:Bloque 5",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "metadata": [
+              {
+                "clave": "contextos",
+                "valor": "Receta, Auditoría",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "d923e741-e613-4512-9134-037cc6ac0169",
+            "x": 950,
+            "y": 250,
+            "width": 190,
+            "height": 90
+          }
+        ],
+        "aristas": [],
+        "x": 60,
+        "y": 230,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Carril",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Plataforma Teleconsulta",
+        "entidad_raiz": "Carril de la plataforma nueva que ejecuta el modelo de dominio.",
+        "descripcion": "Carril de la plataforma nueva que ejecuta el modelo de dominio.",
+        "nodos": [
+          {
+            "id": "pl-atender",
+            "nombre": "Atender y registrar",
+            "tipo_elemento": "Subproceso",
+            "descripcion": "Atención con y sin conectividad y reconciliación al reconectar. Detalle en la vista BPMN 2.",
+            "fuente": "Taller BPMN.pdf:Bloque 4",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "metadata": [
+              {
+                "clave": "contextos",
+                "valor": "Episodio clínico, Interconsulta, Analítica de uso, Auditoría",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "6bd78cf1-b2ae-4ec8-ab5c-86c6d05da25b",
+            "x": 735,
+            "y": 420,
+            "width": 190,
+            "height": 90
+          }
+        ],
+        "aristas": [],
+        "x": 60,
+        "y": 400,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Carril",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Paciente",
+        "entidad_raiz": "Pool externo: se comunica por mensajes.",
+        "descripcion": "Pool externo: se comunica por mensajes.",
+        "nodos": [
+          {
+            "id": "pl-pac",
+            "nombre": "Asistir a la consulta",
+            "tipo_elemento": "Tarea",
+            "descripcion": "El paciente recibe la confirmación y asiste al centro a su teleconsulta.",
+            "fuente": "Taller BPMN.pdf:Bloque 2",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "estilo": {
+              "fondo": "#06b6d4",
+              "colorTexto": "#ffffff"
+            },
+            "x": 305,
+            "y": 590,
+            "width": 190,
+            "height": 90
+          }
+        ],
+        "aristas": [],
+        "x": 60,
+        "y": 570,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Pool",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Legado clínico",
+        "entidad_raiz": "Pool externo: legado que no se modifica; solo SOAP nocturno y base de solo lectura.",
+        "descripcion": "Pool externo: legado que no se modifica; solo SOAP nocturno y base de solo lectura.",
+        "nodos": [
+          {
+            "id": "pl-leg",
+            "nombre": "Responder SOAP",
+            "tipo_elemento": "Tarea",
+            "descripcion": "El legado responde por SOAP o base de solo lectura.",
+            "fuente": "Taller BPMN.pdf:Bloque 2",
+            "estado_comparativo": "existente",
+            "tags_tecnologia": null,
+            "estilo": {
+              "fondo": "#06b6d4",
+              "colorTexto": "#ffffff"
+            },
+            "x": 520,
+            "y": 760,
+            "width": 190,
+            "height": 90
+          }
+        ],
+        "aristas": [],
+        "x": 60,
+        "y": 740,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Pool",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "existente"
+      },
+      {
+        "nombre_agregado": "Farmacia del centro",
+        "entidad_raiz": "Pool externo: recibe la receta firmada.",
+        "descripcion": "Pool externo: recibe la receta firmada.",
+        "nodos": [
+          {
+            "id": "pl-farm",
+            "nombre": "Recibir receta",
+            "tipo_elemento": "Tarea",
+            "descripcion": "La farmacia consume la receta firmada desde la cola.",
+            "fuente": "Taller BPMN.pdf:Bloque 2",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": null,
+            "estilo": {
+              "fondo": "#06b6d4",
+              "colorTexto": "#ffffff"
+            },
+            "x": 950,
+            "y": 930,
+            "width": 190,
+            "height": 90
+          }
+        ],
+        "aristas": [],
+        "x": 60,
+        "y": 910,
+        "width": 1350,
+        "height": 150,
+        "tipo_contenedor": "Pool",
+        "fuente": "Taller BPMN.pdf:Bloque 2",
+        "estado_comparativo": "nuevo"
+      }
+    ],
+    "read_models": [],
+    "politicas_inter_agregados": [],
+    "responsables": [
+      "Evie"
+    ],
+    "notas": "Decisiones tomadas al modelar\n- Pool principal con subprocesos enlazados por viewRef a las cuatro vistas BPMN.\n- Cada tarea lleva su ficha en metadatos: contexto, dato, evento, excepción y comando DDD.\n- Auditoría como tarea propia en los cuatro procesos.\n- Validación del sello horario modelada como tarea (decisión ajustable).\n\nPendiente en la fuente\n- Reintentos antes de dead letter; estado 'entregada a farmacia' para el paciente; caso de dato urgente con legado caído; vista DDD del proyecto.",
+    "transcript": ""
+  },
+  "vistas": {
+    "customViews": [
+      {
+        "id": "b9025f6d-ef21-4508-b062-786249bcff2b",
+        "name": "BPMN 1 Agendar",
+        "kind": "graph",
+        "notation": "bpmn",
+        "graph": {
+          "nombre_proyecto": "RedSalud Andina · BPMN 1 Agendar teleconsulta",
+          "version": "1.0.0",
+          "notation": "bpmn",
+          "fecha_analisis": "2026-11-07",
+          "big_picture": {
+            "descripcion": "Proceso de agendamiento: desde la solicitud del centro rural hasta la cita confirmada, con el gateway de disponibilidad como invariante de no doble reserva.",
+            "hotspots": [
+              "Umbral de reintentos al elegir otra franja: el taller no fija cuántas veces se repite el bucle"
+            ],
+            "nodos": [],
+            "aristas": [
+              {
+                "fuente": "ag-registrar",
+                "destino": "ag-disp",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "ag-gw1",
+                "destino": "ag-otra",
+                "descripcion": "No (sin cupo)",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "ag-gw2",
+                "destino": "ag-otra",
+                "descripcion": "No (cupo tomado)",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "ag-otra",
+                "destino": "ag-disp",
+                "descripcion": "vuelve a consultar",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "ag-notif",
+                "destino": "ag-pac",
+                "descripcion": "mensaje: cita confirmada",
+                "routing": "orthogonal"
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Médico rural",
+              "entidad_raiz": "Carril del médico del centro rural: solicita la interconsulta y elige franja.",
+              "descripcion": "Carril del médico del centro rural: solicita la interconsulta y elige franja.",
+              "nodos": [
+                {
+                  "id": "ag-inicio",
+                  "nombre": "Interconsulta pedida",
+                  "tipo_elemento": "Evento de Inicio",
+                  "descripcion": "El centro rural detecta que un paciente necesita una interconsulta de especialidad.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 110,
+                  "y": 90,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "ag-registrar",
+                  "nombre": "Registrar solicitud",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El médico rural registra la interconsulta con especialidad y motivo; nace en estado solicitada.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Interconsulta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Interconsulta (estado = solicitada)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "InterconsultaSolicitada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Interconsulta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 305,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-otra",
+                  "nombre": "Elegir otra franja",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El médico elige otra franja cuando no hay cupo o el cupo fue tomado por otro centro; el proceso vuelve a consultar cupos.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Agenda",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Franja elegida",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "FranjaAlternativaElegida",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: sin cupo o cupo tomado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Elegir Franja",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "ag-inicio",
+                  "destino": "ag-registrar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 60,
+              "width": 2425,
+              "height": 150,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 2-3",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Plataforma · Agenda",
+              "entidad_raiz": "Carril de la plataforma: contexto Agenda con consistencia fuerte sobre cupos y reservas.",
+              "descripcion": "Carril de la plataforma: contexto Agenda con consistencia fuerte sobre cupos y reservas.",
+              "nodos": [
+                {
+                  "id": "ag-disp",
+                  "nombre": "Consultar cupos",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Consulta en la agenda unificada los cupos libres del especialista pedido.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Agenda",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Disponibilidad (especialista, franja)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "DisponibilidadConsultada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Hay cupo? No → Elegir otra franja",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Consultar Disponibilidad",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 520,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-gw1",
+                  "nombre": "¿Hay cupo?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: la franja pedida tiene al menos un cupo libre. Sí: reservar; No: el médico elige otra franja.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 755,
+                  "y": 250,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "ag-reservar",
+                  "nombre": "Reservar cupo",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Toma el cupo con consistencia fuerte: una sola reserva por cupo aunque dos centros confirmen a la vez. Implementa la política que evita la doble reserva.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Agenda",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Reserva (cupo, centro, estado)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "CupoReservado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Reserva confirmada? No → Elegir otra franja",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Reservar Cupo · política: Evitar doble reserva",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-gw2",
+                  "nombre": "¿Reserva confirmada?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: el cupo quedó a nombre de este centro. Sí: confirmar; No: otro centro lo tomó primero y se vuelve a elegir.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1185,
+                  "y": 250,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "ag-confirmar",
+                  "nombre": "Confirmar cita",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Confirma la cita sobre la reserva firme; ocurre antes de avisar al paciente.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Agenda",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Reserva (estado = confirmada)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "ReservaConfirmada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Confirmar Reserva",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1380,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-marcar",
+                  "nombre": "Marcar agendada",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Actualiza la interconsulta a estado agendada para el seguimiento del gestor de red.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Interconsulta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Interconsulta (estado = agendada)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "InterconsultaAgendada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Marcar Interconsulta Agendada",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1595,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-notif",
+                  "nombre": "Notificar al paciente",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Envía al paciente la confirmación de fecha, hora y especialista, una vez confirmada la reserva.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Agenda",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Notificación de cita",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "PacienteNotificadoDeCita",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Notificar Cita",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1810,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-audit",
+                  "nombre": "Registrar auditoría",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Deja el evento de auditoría con usuario, fecha, recurso y motivo como tarea propia, no como efecto lateral.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento de auditoría (usuario, fecha, recurso, motivo)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "AccesoAuditado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Auditoría",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2025,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "ag-fin",
+                  "nombre": "Fin (cita confirmada)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "La cita queda confirmada, el paciente notificado y el acceso auditado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 3",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2260,
+                  "y": 260,
+                  "width": 150,
+                  "height": 70
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "ag-disp",
+                  "destino": "ag-gw1",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-gw1",
+                  "destino": "ag-reservar",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-reservar",
+                  "destino": "ag-gw2",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-gw2",
+                  "destino": "ag-confirmar",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-confirmar",
+                  "destino": "ag-marcar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-marcar",
+                  "destino": "ag-notif",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-notif",
+                  "destino": "ag-audit",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "ag-audit",
+                  "destino": "ag-fin",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 230,
+              "width": 2425,
+              "height": 150,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 2-3",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Paciente",
+              "entidad_raiz": "Pool externo: el paciente recibe mensajes, no ejecuta tareas internas.",
+              "descripcion": "Pool externo: el paciente recibe mensajes, no ejecuta tareas internas.",
+              "nodos": [
+                {
+                  "id": "ag-pac",
+                  "nombre": "Recibir confirmación",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El paciente recibe la confirmación de su cita en el centro.",
+                  "fuente": "Taller BPMN.pdf:Bloque 2",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "estilo": {
+                    "fondo": "#06b6d4",
+                    "colorTexto": "#ffffff"
+                  },
+                  "x": 1810,
+                  "y": 420,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 400,
+              "width": 2425,
+              "height": 150,
+              "tipo_contenedor": "Pool",
+              "fuente": "Taller BPMN.pdf:Bloque 2-3",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [],
+          "responsables": [],
+          "notas": "",
+          "transcript": "",
+          "source_docs": [
+            {
+              "nombre": "Taller BPMN.pdf",
+              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
+              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
+            }
+          ]
+        },
+        "createdAt": "2026-11-07T15:00:00.000Z"
+      },
+      {
+        "id": "6bd78cf1-b2ae-4ec8-ab5c-86c6d05da25b",
+        "name": "BPMN 2 Atender offline",
+        "kind": "graph",
+        "notation": "bpmn",
+        "graph": {
+          "nombre_proyecto": "RedSalud Andina · BPMN 2 Atender y registrar (offline)",
+          "version": "1.0.0",
+          "notation": "bpmn",
+          "fecha_analisis": "2026-11-07",
+          "big_picture": {
+            "descripcion": "Proceso de atención y registro clínico con bifurcación con/sin conectividad, reconciliación al reconectar y política de conflicto como gateway.",
+            "hotspots": [
+              "Validación del sello horario: el taller pregunta si hay tarea o se confía; aquí se modeló la tarea (decisión del equipo, ajustable)",
+              "Lista cerrada de campos del gateway de conflicto: nota de evolución, signos vitales, adjunto de examen, reserva de cupo, receta firmada, asistencia"
+            ],
+            "nodos": [],
+            "aristas": [
+              {
+                "fuente": "at-admitir",
+                "destino": "at-video",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-video",
+                "destino": "at-signos",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-signos",
+                "destino": "at-nota",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-nota",
+                "destino": "at-gwconn",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-envia",
+                "destino": "at-sync",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-reenvia",
+                "destino": "at-sync",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-rechazar",
+                "destino": "at-reintentar",
+                "descripcion": "pide reintento",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "at-reintentar",
+                "destino": "at-envia",
+                "descripcion": "vuelve a enviar",
+                "routing": "orthogonal"
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Médico rural",
+              "entidad_raiz": "Carril del médico del centro: admite, toma signos y reintenta lo rechazado.",
+              "descripcion": "Carril del médico del centro: admite, toma signos y reintenta lo rechazado.",
+              "nodos": [
+                {
+                  "id": "at-inicio",
+                  "nombre": "Cita en curso",
+                  "tipo_elemento": "Evento de Inicio",
+                  "descripcion": "Llega la hora de la cita y el paciente está en el centro rural.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 110,
+                  "y": 90,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "at-admitir",
+                  "nombre": "Admitir al paciente",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra la asistencia del paciente a la sala de espera antes de la videoconsulta.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Asistencia (paciente, hora de llegada)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "AsistenciaRegistrada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Sin enlace → rama offline",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Asistencia",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 305,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-signos",
+                  "nombre": "Tomar signos vitales",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El médico rural registra los signos vitales del paciente en el episodio.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Signos vitales del episodio",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "SignosVitalesRegistrados",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Hay conectividad? No → cola local",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Signos Vitales",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 735,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-reintentar",
+                  "nombre": "Reintentar en servidor",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El médico actúa sobre el rechazo y reintenta la operación contra el servidor.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Reintento del evento rechazado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "ReintentoSolicitado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Vuelve a Enviar en línea",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Reintentar Evento",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2885,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "at-inicio",
+                  "destino": "at-admitir",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 60,
+              "width": 3715,
+              "height": 150,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 4",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Especialista",
+              "entidad_raiz": "Carril del especialista itinerante: atiende por video y redacta la nota.",
+              "descripcion": "Carril del especialista itinerante: atiende por video y redacta la nota.",
+              "nodos": [
+                {
+                  "id": "at-video",
+                  "nombre": "Atender videoconsulta",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista conduce la videoconsulta con el paciente y el médico del centro.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Sala de videoconsulta (inicio, fin)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "VideoconsultaIniciada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Corte de enlace → se sigue registrando en local",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Iniciar Videoconsulta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 520,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-nota",
+                  "nombre": "Redactar nota clínica",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista redacta la nota de evolución de la teleconsulta.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Nota de evolución",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "NotaEvolucionRegistrada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Hay conectividad? No → cola local",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Nota de Evolución",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 230,
+              "width": 3715,
+              "height": 150,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 4",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "PWA del centro",
+              "entidad_raiz": "Carril del cliente offline-first: decide con/sin red, guarda en cola local y reenvía.",
+              "descripcion": "Carril del cliente offline-first: decide con/sin red, guarda en cola local y reenvía.",
+              "nodos": [
+                {
+                  "id": "at-gwconn",
+                  "nombre": "¿Hay conectividad?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: el enlace del centro responde. Sí: envío en línea; No: registro local con cola de reintentos.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1185,
+                  "y": 420,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "at-envia",
+                  "nombre": "Enviar en línea",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Envía el evento clínico al servidor con su identificador y sello de tiempo del centro.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento clínico (UUID/ULID, sello del centro)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "EventoEnviado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Sin enlace → rama offline",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Enviar Evento",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1380,
+                  "y": 420,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-local",
+                  "nombre": "Guardar en cola local",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra el evento en el dispositivo con identificador generado en el cliente y sello del centro; encola con orden por agregado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento local (UUID/ULID, sello de tiempo, orden por agregado)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "EventoEncolado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Rama sin conectividad",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Evento Local",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1380,
+                  "y": 530,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-timer",
+                  "nombre": "Reintento de envío",
+                  "tipo_elemento": "Evento Temporizador",
+                  "descripcion": "Reintenta el envío con espera creciente hasta que vuelva el enlace; la meta es sincronizar en 15 min o menos tras reconectar.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1615,
+                  "y": 540,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "at-reenvia",
+                  "nombre": "Reenviar la cola",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Reenvía en orden los eventos encolados con clave de idempotencia por evento.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Lote de eventos con clave de idempotencia",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "ColaReenviada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Sin enlace → vuelve al reintento",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Reenviar Cola",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1810,
+                  "y": 530,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "at-gwconn",
+                  "destino": "at-envia",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-gwconn",
+                  "destino": "at-local",
+                  "descripcion": "No",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-local",
+                  "destino": "at-timer",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-timer",
+                  "destino": "at-reenvia",
+                  "descripcion": "enlace de vuelta",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 400,
+              "width": 3715,
+              "height": 260,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 4",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Plataforma Teleconsulta",
+              "entidad_raiz": "Carril del servidor: sincroniza, resuelve conflictos, audita y cierra.",
+              "descripcion": "Carril del servidor: sincroniza, resuelve conflictos, audita y cierra.",
+              "nodos": [
+                {
+                  "id": "at-sync",
+                  "nombre": "Sincronizar eventos",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Punto de reencuentro de las dos ramas: recibe los eventos, ignora duplicados por idempotencia y los ordena por agregado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Eventos ordenados por agregado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "EventosSincronizados",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Evento duplicado → se ignora",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Sincronizar Eventos",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2025,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-sello",
+                  "nombre": "Validar sello horario",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Contrasta el sello del dispositivo con la hora del servidor para detectar relojes desajustados.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Sello validado (desvío del reloj)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "SelloValidado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Reloj fuera de rango → se marca para auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Validar Sello de Tiempo",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2240,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-gwconf",
+                  "nombre": "¿Hay conflicto?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Tres ramas exhaustivas: sin conflicto; conflicto asistencial (nota, signos, adjunto, asistencia) que se resuelve por último escritor; conflicto sobre cupo o receta firmada, que no se resuelve en el borde.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2475,
+                  "y": 700,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "at-aplicar",
+                  "nombre": "Aplicar eventos",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Reaplica los eventos al episodio clínico cuando no hay conflicto.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Episodio clínico actualizado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "EpisodioActualizado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Reaplicar Eventos",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2670,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-lww",
+                  "nombre": "Resolver conflicto",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Resuelve por último escritor sobre campos independientes y conserva ambos valores para la auditoría.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Campo resuelto + valor descartado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "ConflictoResuelto",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de conflicto asistencial",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Resolver Conflicto",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2670,
+                  "y": 810,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-rechazar",
+                  "nombre": "Rechazar evento",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Rechaza el evento que toca cupos o recetas firmadas y pide reintento contra el servidor.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Episodio clínico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento rechazado (motivo)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "EventoRechazado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: cupo o receta firmada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Rechazar Evento en Conflicto",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2670,
+                  "y": 920,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-audit",
+                  "nombre": "Registrar auditoría",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra el acceso y, si hubo conflicto, ambos valores en auditoría.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento de auditoría (+ ambos valores si hubo conflicto)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "AccesoAuditado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Auditoría",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2885,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-marcar",
+                  "nombre": "Marcar atendida",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Actualiza la interconsulta a estado atendida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Interconsulta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Interconsulta (estado = atendida)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "InterconsultaAtendida",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Marcar Interconsulta Atendida",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 3100,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-metricas",
+                  "nombre": "Registrar indicadores",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Actualiza indicadores de uso por centro: teleconsultas y tiempo de espera.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Analítica de uso",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Indicadores (teleconsultas por centro, tiempo de espera)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "IndicadorActualizado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Actualizar Indicadores",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 3315,
+                  "y": 700,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "at-fin",
+                  "nombre": "Fin (episodio al día)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "El episodio quedó sincronizado, auditado y la interconsulta marcada como atendida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 4",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 3550,
+                  "y": 710,
+                  "width": 150,
+                  "height": 70
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "at-sync",
+                  "destino": "at-sello",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-sello",
+                  "destino": "at-gwconf",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-gwconf",
+                  "destino": "at-aplicar",
+                  "descripcion": "Sin conflicto",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-gwconf",
+                  "destino": "at-lww",
+                  "descripcion": "Conflicto asistencial",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-gwconf",
+                  "destino": "at-rechazar",
+                  "descripcion": "Cupo o receta firmada",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-aplicar",
+                  "destino": "at-audit",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-lww",
+                  "destino": "at-audit",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-audit",
+                  "destino": "at-marcar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-marcar",
+                  "destino": "at-metricas",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "at-metricas",
+                  "destino": "at-fin",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 680,
+              "width": 3715,
+              "height": 370,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 4",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [],
+          "responsables": [],
+          "notas": "",
+          "transcript": "",
+          "source_docs": [
+            {
+              "nombre": "Taller BPMN.pdf",
+              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
+              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
+            }
+          ]
+        },
+        "createdAt": "2026-11-07T15:00:00.000Z"
+      },
+      {
+        "id": "d923e741-e613-4512-9134-037cc6ac0169",
+        "name": "BPMN 3 Prescribir",
+        "kind": "graph",
+        "notation": "bpmn",
+        "graph": {
+          "nombre_proyecto": "RedSalud Andina · BPMN 3 Prescribir receta",
+          "version": "1.0.0",
+          "notation": "bpmn",
+          "fecha_analisis": "2026-11-07",
+          "big_picture": {
+            "descripcion": "Proceso de receta: la firma es compuerta dura y el envío a farmacia es asíncrono hacia una cola, con reintento y dead letter.",
+            "hotspots": [
+              "Reintentos antes de enviar a dead letter: el taller no fija el número",
+              "Estado visible al paciente: solo 'receta emitida' está modelado; 'entregada a farmacia' queda por decidir",
+              "Cómo recibe la farmacia la receta (sistema propio, impresión o correo): lo deja abierto el caso"
+            ],
+            "nodos": [],
+            "aristas": [
+              {
+                "fuente": "pr-firmar",
+                "destino": "pr-gwfirma",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "pr-gwfirma",
+                "destino": "pr-corregir",
+                "descripcion": "No (firma inválida)",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "pr-notif",
+                "destino": "pr-pac",
+                "descripcion": "mensaje: receta emitida",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "pr-publicar",
+                "destino": "pr-farm",
+                "descripcion": "mensaje: receta firmada",
+                "routing": "orthogonal"
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Especialista",
+              "entidad_raiz": "Carril del especialista que prescribe y firma.",
+              "descripcion": "Carril del especialista que prescribe y firma.",
+              "nodos": [
+                {
+                  "id": "pr-inicio",
+                  "nombre": "Consulta concluida",
+                  "tipo_elemento": "Evento de Inicio",
+                  "descripcion": "El especialista termina la teleconsulta y decide prescribir.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 110,
+                  "y": 90,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "pr-redactar",
+                  "nombre": "Redactar receta",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista redacta la receta con medicamentos y dosis.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Receta (borrador)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "RecetaRedactada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Redactar Receta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 305,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-firmar",
+                  "nombre": "Firmar receta",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Tarea de usuario que actúa como compuerta dura: ningún camino emite ni envía una receta sin firma válida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Receta (firmada)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "RecetaFirmada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Firma válida? No → Reintentar firma",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Firmar Receta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 520,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-corregir",
+                  "nombre": "Reintentar firma",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista corrige y vuelve a firmar cuando la firma no es válida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Receta (borrador corregido)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "FirmaReintentada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: firma inválida",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Reintentar Firma",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 735,
+                  "y": 190,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "pr-inicio",
+                  "destino": "pr-redactar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-redactar",
+                  "destino": "pr-firmar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-corregir",
+                  "destino": "pr-firmar",
+                  "descripcion": "vuelve a firmar",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 60,
+              "width": 2640,
+              "height": 260,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 5",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Plataforma Teleconsulta",
+              "entidad_raiz": "Carril del servidor: emite, audita, publica y reintenta.",
+              "descripcion": "Carril del servidor: emite, audita, publica y reintenta.",
+              "nodos": [
+                {
+                  "id": "pr-gwfirma",
+                  "nombre": "¿Firma válida?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: la firma electrónica verifica contra el especialista. Sí: emitir; No: volver a firmar. No existe otro camino a Emitir.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 755,
+                  "y": 360,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "pr-emitir",
+                  "nombre": "Emitir receta",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Emite la receta firmada con consistencia fuerte local.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Receta (estado = emitida)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "RecetaEmitida",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Emitir Receta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-audit",
+                  "nombre": "Registrar auditoría",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra la emisión de la receta firmada en auditoría.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento de auditoría (usuario, fecha, recurso, motivo)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "FirmaAuditada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Auditoría",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1165,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-notif",
+                  "nombre": "Notificar emisión",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Avisa al paciente que su receta fue emitida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Estado visible al paciente (emitida)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "PacienteNotificadoDeReceta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Notificar Receta",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1380,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-publicar",
+                  "nombre": "Publicar en cola",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Publica la receta como evento asíncrono en la cola hacia la farmacia; no es una llamada bloqueante.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Mensaje de receta en cola",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "RecetaPublicada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Cola disponible? No → reintento o dead letter",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Enviar Receta a Farmacia",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1595,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-gwcola",
+                  "nombre": "¿Cola disponible?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: la cola hacia la farmacia aceptó el mensaje. Sí: termina; No con reintentos pendientes: espera y reintenta; No con reintentos agotados: dead letter.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1830,
+                  "y": 360,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "pr-fin",
+                  "nombre": "Fin (receta en cola)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "La receta quedó en la cola para la farmacia.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2045,
+                  "y": 370,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "pr-timer",
+                  "nombre": "Reintento con espera",
+                  "tipo_elemento": "Evento Temporizador",
+                  "descripcion": "Espera con retroceso creciente antes de reintentar la publicación.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2045,
+                  "y": 480,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "pr-dlq",
+                  "nombre": "Enviar a dead letter",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Aparta la receta no entregada a la cola de mensajes fallidos para tratamiento manual.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Receta en dead letter",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "RecetaEnDeadLetter",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: reintentos agotados",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Apartar Receta Fallida",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2025,
+                  "y": 580,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-avisar",
+                  "nombre": "Avisar al médico",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Notifica al médico que la receta no llegó a la farmacia.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Receta",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Alerta de receta pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "MedicoAvisadoDeFalla",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: reintentos agotados",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Alertar Receta Pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2240,
+                  "y": 580,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "pr-fin2",
+                  "nombre": "Fin (receta pendiente)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "La receta quedó sin entregar y con intervención humana pendiente.",
+                  "fuente": "Taller BPMN.pdf:Bloque 5",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2475,
+                  "y": 590,
+                  "width": 150,
+                  "height": 70
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "pr-gwfirma",
+                  "destino": "pr-emitir",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-emitir",
+                  "destino": "pr-audit",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-audit",
+                  "destino": "pr-notif",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-notif",
+                  "destino": "pr-publicar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-publicar",
+                  "destino": "pr-gwcola",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-gwcola",
+                  "destino": "pr-fin",
+                  "descripcion": "Sí (Receta: en cola)",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-gwcola",
+                  "destino": "pr-timer",
+                  "descripcion": "No, reintentar",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-timer",
+                  "destino": "pr-publicar",
+                  "descripcion": "reintenta",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-gwcola",
+                  "destino": "pr-dlq",
+                  "descripcion": "No, reintentos agotados",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-dlq",
+                  "destino": "pr-avisar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "pr-avisar",
+                  "destino": "pr-fin2",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 340,
+              "width": 2640,
+              "height": 370,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 5",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Paciente",
+              "entidad_raiz": "Pool externo: recibe el estado de la receta.",
+              "descripcion": "Pool externo: recibe el estado de la receta.",
+              "nodos": [
+                {
+                  "id": "pr-pac",
+                  "nombre": "Ver receta emitida",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El paciente ve el estado de su receta como emitida.",
+                  "fuente": "Taller BPMN.pdf:Bloque 2",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "estilo": {
+                    "fondo": "#06b6d4",
+                    "colorTexto": "#ffffff"
+                  },
+                  "x": 1380,
+                  "y": 750,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 730,
+              "width": 2640,
+              "height": 150,
+              "tipo_contenedor": "Pool",
+              "fuente": "Taller BPMN.pdf:Bloque 5",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Farmacia del centro",
+              "entidad_raiz": "Pool externo: consume la receta desde la cola.",
+              "descripcion": "Pool externo: consume la receta desde la cola.",
+              "nodos": [
+                {
+                  "id": "pr-farm",
+                  "nombre": "Recibir receta",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "La farmacia del centro consume la receta firmada desde la cola.",
+                  "fuente": "Taller BPMN.pdf:Bloque 2",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "estilo": {
+                    "fondo": "#06b6d4",
+                    "colorTexto": "#ffffff"
+                  },
+                  "x": 2025,
+                  "y": 920,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 900,
+              "width": 2640,
+              "height": 150,
+              "tipo_contenedor": "Pool",
+              "fuente": "Taller BPMN.pdf:Bloque 5",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [],
+          "responsables": [],
+          "notas": "",
+          "transcript": "",
+          "source_docs": [
+            {
+              "nombre": "Taller BPMN.pdf",
+              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
+              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
+            }
+          ]
+        },
+        "createdAt": "2026-11-07T15:00:00.000Z"
+      },
+      {
+        "id": "97aecd60-9e89-4b44-809c-c4f7ce06a609",
+        "name": "BPMN 4 Historial",
+        "kind": "graph",
+        "notation": "bpmn",
+        "graph": {
+          "nombre_proyecto": "RedSalud Andina · BPMN 4 Consultar historial",
+          "version": "1.0.0",
+          "notation": "bpmn",
+          "fecha_analisis": "2026-11-07",
+          "big_picture": {
+            "descripcion": "Proceso de lectura del historial del legado: vista de lectura propia (CQRS) y, solo si el dato no está, caída a consulta directa al SOAP con camino de error.",
+            "hotspots": [
+              "Si el legado no responde y el dato es urgente: el taller lo pregunta y el caso no lo resuelve; hoy solo se avisa que no hay historial",
+              "Caducidad de la vista: se muestra al especialista con la marca de frescura, no se resuelve en silencio"
+            ],
+            "nodos": [],
+            "aristas": [
+              {
+                "fuente": "hi-solicitar",
+                "destino": "hi-autorizar",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "hi-gwvista",
+                "destino": "hi-mostrar",
+                "descripcion": "Sí (dato en vista)",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "hi-traducir",
+                "destino": "hi-mostrar",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "hi-mostrar",
+                "destino": "hi-audit",
+                "descripcion": "",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "hi-legado",
+                "destino": "hi-leg",
+                "descripcion": "mensaje: consulta [SOAP]",
+                "routing": "orthogonal"
+              },
+              {
+                "fuente": "hi-leg",
+                "destino": "hi-traducir",
+                "descripcion": "mensaje: respuesta [SOAP]",
+                "routing": "orthogonal"
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Especialista",
+              "entidad_raiz": "Carril del especialista que pide y revisa el historial.",
+              "descripcion": "Carril del especialista que pide y revisa el historial.",
+              "nodos": [
+                {
+                  "id": "hi-inicio",
+                  "nombre": "Historial pedido",
+                  "tipo_elemento": "Evento de Inicio",
+                  "descripcion": "El especialista necesita el historial clínico del paciente.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 110,
+                  "y": 90,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "hi-solicitar",
+                  "nombre": "Solicitar historial",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista indica paciente y motivo de lectura; el motivo es obligatorio para la auditoría.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Solicitud de lectura (paciente, motivo)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "HistorialSolicitado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Solicitar Historial",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 305,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-mostrar",
+                  "nombre": "Revisar historial",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El especialista lee el historial con su marca de frescura visible, sea de la vista o del legado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Lectura mostrada con marca de frescura",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "HistorialMostrado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Mostrar Historial",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2025,
+                  "y": 80,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "hi-inicio",
+                  "destino": "hi-solicitar",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 60,
+              "width": 2640,
+              "height": 150,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 6",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Plataforma Teleconsulta",
+              "entidad_raiz": "Carril del servidor: autoriza, busca, traduce y audita.",
+              "descripcion": "Carril del servidor: autoriza, busca, traduce y audita.",
+              "nodos": [
+                {
+                  "id": "hi-autorizar",
+                  "nombre": "Autorizar lectura",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Decide el acceso por rol y atributo: solo lee quien tiene rol clínico e interconsulta asignada.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Identidad y acceso",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Decisión de acceso (permitido/denegado)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "AccesoAutorizado o AccesoDenegado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Acceso autorizado? No → Auditar denegación",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Autorizar Lectura Clínica",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 520,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-gwacc",
+                  "nombre": "¿Acceso autorizado?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: el usuario tiene rol clínico y atributo suficiente. Sí: buscar en la vista; No: auditar la denegación.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 755,
+                  "y": 250,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "hi-deneg",
+                  "nombre": "Auditar denegación",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra el intento denegado con usuario, recurso y motivo.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento de auditoría (denegado)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "AccesoDenegadoAuditado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: acceso denegado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Auditoría",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-fin-den",
+                  "nombre": "Fin (acceso denegado)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "La lectura se deniega y queda auditada.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1185,
+                  "y": 370,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "hi-buscar",
+                  "nombre": "Buscar en vista propia",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Busca el historial en la vista de lectura propia (p95 de 2 s o menos), que lleva marca de frescura.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Historial canónico + marca de frescura",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "VistaConsultada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Dato en vista? No → Consultar legado SOAP",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Consultar Vista de Lectura",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 950,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-gwvista",
+                  "nombre": "¿Dato en la vista?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: el historial del paciente está materializado en la vista. Sí: mostrar; No: caer al legado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1185,
+                  "y": 250,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "hi-legado",
+                  "nombre": "Consultar legado SOAP",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Consulta directa al legado cuando el dato no está en la vista (6 s o menos).",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Respuesta SOAP del legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "LegadoConsultado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "¿Legado responde? No → Avisar sin historial",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Consultar Legado",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1380,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-gwleg",
+                  "nombre": "¿Legado responde?",
+                  "tipo_elemento": "Compuerta Exclusiva",
+                  "descripcion": "Condición: el SOAP respondió dentro del tiempo. Sí: traducir; No: avisar que no hay historial.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1615,
+                  "y": 360,
+                  "width": 150,
+                  "height": 90
+                },
+                {
+                  "id": "hi-traducir",
+                  "nombre": "Traducir a canónico",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El adaptador anticorrupción traduce la respuesta del legado al modelo canónico.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Historial en modelo canónico",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "HistorialTraducido",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Traducir Historial",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1810,
+                  "y": 360,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-nodisp",
+                  "nombre": "Avisar sin historial",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Informa al especialista que el legado no respondió; si existe, indica la antigüedad del último dato.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Integración legado",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Aviso de historial no disponible",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "HistorialNoDisponible",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Camino de error: legado caído",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Notificar Historial No Disponible",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1810,
+                  "y": 470,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-fin-err",
+                  "nombre": "Fin (legado caído)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "No se pudo leer el historial por caída del legado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2045,
+                  "y": 480,
+                  "width": 150,
+                  "height": 70
+                },
+                {
+                  "id": "hi-audit",
+                  "nombre": "Auditar lectura",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "Registra la lectura con usuario, fecha, recurso y motivo como tarea propia.",
+                  "fuente": "Taller BPMN.pdf:Bloque 7",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "contexto",
+                      "valor": "Auditoría",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "dato",
+                      "valor": "Evento de auditoría (usuario, fecha, recurso, motivo)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "evento",
+                      "valor": "LecturaAuditada",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "excepcion",
+                      "valor": "Ninguna (camino principal)",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "comando_ddd",
+                      "valor": "Registrar Auditoría",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2240,
+                  "y": 250,
+                  "width": 190,
+                  "height": 90
+                },
+                {
+                  "id": "hi-fin",
+                  "nombre": "Fin (historial leído)",
+                  "tipo_elemento": "Evento de Fin",
+                  "descripcion": "El historial fue leído y auditado.",
+                  "fuente": "Taller BPMN.pdf:Bloque 6",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 2475,
+                  "y": 260,
+                  "width": 150,
+                  "height": 70
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "hi-autorizar",
+                  "destino": "hi-gwacc",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-gwacc",
+                  "destino": "hi-buscar",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-gwacc",
+                  "destino": "hi-deneg",
+                  "descripcion": "No",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-deneg",
+                  "destino": "hi-fin-den",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-buscar",
+                  "destino": "hi-gwvista",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-gwvista",
+                  "destino": "hi-legado",
+                  "descripcion": "No",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-legado",
+                  "destino": "hi-gwleg",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-gwleg",
+                  "destino": "hi-traducir",
+                  "descripcion": "Sí",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-gwleg",
+                  "destino": "hi-nodisp",
+                  "descripcion": "No (sin respuesta)",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-nodisp",
+                  "destino": "hi-fin-err",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                },
+                {
+                  "fuente": "hi-audit",
+                  "destino": "hi-fin",
+                  "descripcion": "",
+                  "routing": "orthogonal"
+                }
+              ],
+              "x": 60,
+              "y": 230,
+              "width": 2640,
+              "height": 370,
+              "tipo_contenedor": "Carril",
+              "fuente": "Taller BPMN.pdf:Bloque 6",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Legado clínico",
+              "entidad_raiz": "Pool externo: sistema on-premise que no se modifica; expone SOAP nocturno y base de solo lectura.",
+              "descripcion": "Pool externo: sistema on-premise que no se modifica; expone SOAP nocturno y base de solo lectura.",
+              "nodos": [
+                {
+                  "id": "hi-leg",
+                  "nombre": "Responder SOAP",
+                  "tipo_elemento": "Tarea",
+                  "descripcion": "El legado responde por su API SOAP o su base de solo lectura.",
+                  "fuente": "Taller BPMN.pdf:Bloque 2",
+                  "estado_comparativo": "existente",
+                  "tags_tecnologia": null,
+                  "estilo": {
+                    "fondo": "#06b6d4",
+                    "colorTexto": "#ffffff"
+                  },
+                  "x": 1380,
+                  "y": 640,
+                  "width": 190,
+                  "height": 90
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 620,
+              "width": 2640,
+              "height": 150,
+              "tipo_contenedor": "Pool",
+              "fuente": "Taller BPMN.pdf:Bloque 6",
+              "estado_comparativo": "existente"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [],
+          "responsables": [],
+          "notas": "",
+          "transcript": "",
+          "source_docs": [
+            {
+              "nombre": "Taller BPMN.pdf",
+              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
+              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
+            }
+          ]
+        },
+        "createdAt": "2026-11-07T15:00:00.000Z"
+      }
+    ],
+    "activeViewId": "design",
+    "injectedViewIds": [],
+    "openViewIds": [
+      "b9025f6d-ef21-4508-b062-786249bcff2b",
+      "6bd78cf1-b2ae-4ec8-ab5c-86c6d05da25b",
+      "d923e741-e613-4512-9134-037cc6ac0169",
+      "97aecd60-9e89-4b44-809c-c4f7ce06a609"
+    ]
+  }
+}
