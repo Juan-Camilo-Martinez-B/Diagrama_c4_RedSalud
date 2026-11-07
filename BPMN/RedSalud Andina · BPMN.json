@@ -12,56 +12,7 @@
         "Orden de Consultar historial dentro del flujo global: aquí va antes de Atender; ajustable según el equipo"
       ],
       "nodos": [],
-      "aristas": [
-        {
-          "fuente": "pl-agendar",
-          "destino": "pl-historial",
-          "descripcion": "",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-historial",
-          "destino": "pl-atender",
-          "descripcion": "",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-atender",
-          "destino": "pl-prescribir",
-          "descripcion": "",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-prescribir",
-          "destino": "pl-fin",
-          "descripcion": "",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-agendar",
-          "destino": "pl-pac",
-          "descripcion": "mensaje: cita confirmada",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-pac",
-          "destino": "pl-atender",
-          "descripcion": "mensaje: asistencia",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-historial",
-          "destino": "pl-leg",
-          "descripcion": "mensaje: consulta [SOAP]",
-          "routing": "orthogonal"
-        },
-        {
-          "fuente": "pl-prescribir",
-          "destino": "pl-farm",
-          "descripcion": "mensaje: receta firmada",
-          "routing": "orthogonal"
-        }
-      ]
+      "aristas": []
     },
     "agregados": [
       {
@@ -154,8 +105,8 @@
               }
             ],
             "viewRef": "97aecd60-9e89-4b44-809c-c4f7ce06a609",
-            "x": 520,
-            "y": 250,
+            "x": 560,
+            "y": 243,
             "width": 190,
             "height": 90
           },
@@ -240,8 +191,8 @@
             "estado_comparativo": "nuevo",
             "tags_tecnologia": null,
             "estilo": {
-              "fondo": "#06b6d4",
-              "colorTexto": "#ffffff"
+              "colorTexto": "#ffffff",
+              "fondo": "#06b6d4"
             },
             "x": 305,
             "y": 590,
@@ -272,11 +223,11 @@
             "estado_comparativo": "existente",
             "tags_tecnologia": null,
             "estilo": {
-              "fondo": "#06b6d4",
-              "colorTexto": "#ffffff"
+              "colorTexto": "#ffffff",
+              "fondo": "#06b6d4"
             },
-            "x": 520,
-            "y": 760,
+            "x": 557.3626098632812,
+            "y": 761.0989379882812,
             "width": 190,
             "height": 90
           }
@@ -304,8 +255,8 @@
             "estado_comparativo": "nuevo",
             "tags_tecnologia": null,
             "estilo": {
-              "fondo": "#06b6d4",
-              "colorTexto": "#ffffff"
+              "colorTexto": "#ffffff",
+              "fondo": "#06b6d4"
             },
             "x": 950,
             "y": 930,
@@ -324,7 +275,90 @@
       }
     ],
     "read_models": [],
-    "politicas_inter_agregados": [],
+    "politicas_inter_agregados": [
+      {
+        "fuente": "pl-agendar",
+        "destino": "pl-historial",
+        "descripcion": "",
+        "routing": "orthogonal",
+        "midpoints": [
+          {
+            "x": 672.5274658203125,
+            "y": 131.8681182861328
+          }
+        ]
+      },
+      {
+        "fuente": "pl-historial",
+        "destino": "pl-atender",
+        "descripcion": "",
+        "routing": "orthogonal",
+        "midpoints": [
+          {
+            "x": 846,
+            "y": 296
+          }
+        ]
+      },
+      {
+        "fuente": "pl-atender",
+        "destino": "pl-prescribir",
+        "descripcion": "",
+        "routing": "orthogonal",
+        "sourceAnchor": {
+          "x": 0.7454545454545455,
+          "y": 0
+        },
+        "midpoints": [
+          {
+            "x": 901,
+            "y": 305
+          }
+        ]
+      },
+      {
+        "fuente": "pl-prescribir",
+        "destino": "pl-fin",
+        "descripcion": "",
+        "routing": "orthogonal",
+        "midpoints": [
+          {
+            "x": 1064.835205078125,
+            "y": 120.87911224365234
+          }
+        ]
+      },
+      {
+        "fuente": "pl-agendar",
+        "destino": "pl-pac",
+        "descripcion": "mensaje: cita confirmada",
+        "routing": "orthogonal"
+      },
+      {
+        "fuente": "pl-pac",
+        "destino": "pl-atender",
+        "descripcion": "mensaje: asistencia",
+        "routing": "orthogonal"
+      },
+      {
+        "fuente": "pl-historial",
+        "destino": "pl-leg",
+        "descripcion": "mensaje: consulta [SOAP]",
+        "routing": "straight",
+        "midpoints": [
+          {
+            "x": 660.4395751953125,
+            "y": 648.3516235351562
+          }
+        ]
+      },
+      {
+        "fuente": "pl-prescribir",
+        "destino": "pl-farm",
+        "descripcion": "mensaje: receta firmada",
+        "routing": "orthogonal"
+      }
+    ],
     "responsables": [
       "Evie"
     ],
@@ -349,38 +383,7 @@
               "Umbral de reintentos al elegir otra franja: el taller no fija cuántas veces se repite el bucle"
             ],
             "nodos": [],
-            "aristas": [
-              {
-                "fuente": "ag-registrar",
-                "destino": "ag-disp",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "ag-gw1",
-                "destino": "ag-otra",
-                "descripcion": "No (sin cupo)",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "ag-gw2",
-                "destino": "ag-otra",
-                "descripcion": "No (cupo tomado)",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "ag-otra",
-                "destino": "ag-disp",
-                "descripcion": "vuelve a consultar",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "ag-notif",
-                "destino": "ag-pac",
-                "descripcion": "mensaje: cita confirmada",
-                "routing": "orthogonal"
-              }
-            ]
+            "aristas": []
           },
           "agregados": [
             {
@@ -476,8 +479,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 950,
-                  "y": 80,
+                  "x": 938.8887939453125,
+                  "y": 71.35799407958984,
                   "width": 190,
                   "height": 90
                 }
@@ -538,8 +541,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 520,
-                  "y": 250,
+                  "x": 500.5555419921875,
+                  "y": 240.74066162109375,
                   "width": 190,
                   "height": 90
                 },
@@ -684,7 +687,7 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1595,
+                  "x": 1643.148193359375,
                   "y": 250,
                   "width": 190,
                   "height": 90
@@ -724,7 +727,7 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1810,
+                  "x": 1926.0499267578125,
                   "y": 250,
                   "width": 190,
                   "height": 90
@@ -764,8 +767,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2025,
-                  "y": 250,
+                  "x": 2221.29736328125,
+                  "y": 247.53085327148438,
                   "width": 190,
                   "height": 90
                 },
@@ -777,8 +780,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 3",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2260,
-                  "y": 260,
+                  "x": 2503.20751953125,
+                  "y": 268.6427001953125,
                   "width": 150,
                   "height": 70
                 }
@@ -788,13 +791,37 @@
                   "fuente": "ag-disp",
                   "destino": "ag-gw1",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "straight",
+                  "targetAnchor": {
+                    "x": 0.30441436767578123,
+                    "y": 0.5400848388671875
+                  },
+                  "midpoints": [
+                    {
+                      "x": 762.0394897460938,
+                      "y": 279.6273193359375
+                    }
+                  ]
                 },
                 {
                   "fuente": "ag-gw1",
                   "destino": "ag-reservar",
                   "descripcion": "Sí",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "sourceAnchor": {
+                    "x": 0.6961807250976563,
+                    "y": 0.5391830444335938
+                  },
+                  "targetAnchor": {
+                    "x": 0.005741466175426136,
+                    "y": 0.6665948721078726
+                  },
+                  "midpoints": [
+                    {
+                      "x": 865.548583984375,
+                      "y": 319.32586669921875
+                    }
+                  ]
                 },
                 {
                   "fuente": "ag-reservar",
@@ -824,7 +851,13 @@
                   "fuente": "ag-notif",
                   "destino": "ag-audit",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 2182.028076171875,
+                      "y": 298.8746337890625
+                    }
+                  ]
                 },
                 {
                   "fuente": "ag-audit",
@@ -835,7 +868,7 @@
               ],
               "x": 60,
               "y": 230,
-              "width": 2425,
+              "width": 2600.50048828125,
               "height": 150,
               "tipo_contenedor": "Carril",
               "fuente": "Taller BPMN.pdf:Bloque 2-3",
@@ -855,8 +888,8 @@
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
                   "estilo": {
-                    "fondo": "#06b6d4",
-                    "colorTexto": "#ffffff"
+                    "colorTexto": "#ffffff",
+                    "fondo": "#06b6d4"
                   },
                   "x": 1810,
                   "y": 420,
@@ -875,17 +908,75 @@
             }
           ],
           "read_models": [],
-          "politicas_inter_agregados": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "ag-registrar",
+              "destino": "ag-disp",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 414.8161315917969,
+                  "y": 294.4421691894531
+                }
+              ]
+            },
+            {
+              "fuente": "ag-gw1",
+              "destino": "ag-otra",
+              "descripcion": "No (sin cupo)",
+              "routing": "orthogonal",
+              "targetAnchor": {
+                "x": 0.006590409712357955,
+                "y": 0.8086720246535081
+              },
+              "midpoints": [
+                {
+                  "x": 835.29638671875,
+                  "y": 157.1405487060547
+                }
+              ]
+            },
+            {
+              "fuente": "ag-gw2",
+              "destino": "ag-otra",
+              "descripcion": "No (cupo tomado)",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1263.8929443359375,
+                  "y": 122.21940612792969
+                }
+              ]
+            },
+            {
+              "fuente": "ag-otra",
+              "destino": "ag-disp",
+              "descripcion": "vuelve a consultar",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 612.0390014648438,
+                  "y": 127.77497863769531
+                }
+              ]
+            },
+            {
+              "fuente": "ag-notif",
+              "destino": "ag-pac",
+              "descripcion": "mensaje: cita confirmada",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1983.1953125,
+                  "y": 384.0329895019531
+                }
+              ]
+            }
+          ],
           "responsables": [],
           "notas": "",
-          "transcript": "",
-          "source_docs": [
-            {
-              "nombre": "Taller BPMN.pdf",
-              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
-              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
-            }
-          ]
+          "transcript": ""
         },
         "createdAt": "2026-11-07T15:00:00.000Z"
       },
@@ -906,56 +997,7 @@
               "Lista cerrada de campos del gateway de conflicto: nota de evolución, signos vitales, adjunto de examen, reserva de cupo, receta firmada, asistencia"
             ],
             "nodos": [],
-            "aristas": [
-              {
-                "fuente": "at-admitir",
-                "destino": "at-video",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-video",
-                "destino": "at-signos",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-signos",
-                "destino": "at-nota",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-nota",
-                "destino": "at-gwconn",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-envia",
-                "destino": "at-sync",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-reenvia",
-                "destino": "at-sync",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-rechazar",
-                "destino": "at-reintentar",
-                "descripcion": "pide reintento",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "at-reintentar",
-                "destino": "at-envia",
-                "descripcion": "vuelve a enviar",
-                "routing": "orthogonal"
-              }
-            ]
+            "aristas": []
           },
           "agregados": [
             {
@@ -1261,8 +1303,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1380,
-                  "y": 420,
+                  "x": 1409.3333740234375,
+                  "y": 410.6666564941406,
                   "width": 190,
                   "height": 90
                 },
@@ -1365,13 +1407,29 @@
                   "fuente": "at-gwconn",
                   "destino": "at-envia",
                   "descripcion": "Sí",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "targetAnchor": {
+                    "x": 0.012121027166193182,
+                    "y": 0.2692307692307692
+                  },
+                  "midpoints": [
+                    {
+                      "x": 1346.6666259765625,
+                      "y": 448
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-gwconn",
                   "destino": "at-local",
                   "descripcion": "No",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 1265.3333740234375,
+                      "y": 582.6666870117188
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-local",
@@ -1383,7 +1441,11 @@
                   "fuente": "at-timer",
                   "destino": "at-reenvia",
                   "descripcion": "enlace de vuelta",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "labelOffset": {
+                    "x": -8.8533935546875,
+                    "y": 23.24810791015625
+                  }
                 }
               ],
               "x": 60,
@@ -1434,8 +1496,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2025,
-                  "y": 700,
+                  "x": 1929.8193359375,
+                  "y": 767.4698486328125,
                   "width": 190,
                   "height": 90
                 },
@@ -1527,8 +1589,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2670,
-                  "y": 700,
+                  "x": 2703.884521484375,
+                  "y": 814.8760375976562,
                   "width": 190,
                   "height": 90
                 },
@@ -1567,8 +1629,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2670,
-                  "y": 810,
+                  "x": 2688.181884765625,
+                  "y": 938.0991821289062,
                   "width": 190,
                   "height": 90
                 },
@@ -1607,8 +1669,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2670,
-                  "y": 920,
+                  "x": 2700.578369140625,
+                  "y": 696.8594360351562,
                   "width": 190,
                   "height": 90
                 },
@@ -1647,8 +1709,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2885,
-                  "y": 700,
+                  "x": 3005.661376953125,
+                  "y": 703.3057861328125,
                   "width": 190,
                   "height": 90
                 },
@@ -1687,7 +1749,7 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 3100,
+                  "x": 3290.0830078125,
                   "y": 700,
                   "width": 190,
                   "height": 90
@@ -1727,8 +1789,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 3315,
-                  "y": 700,
+                  "x": 3467.06640625,
+                  "y": 902.4795532226562,
                   "width": 190,
                   "height": 90
                 },
@@ -1740,8 +1802,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 4",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 3550,
-                  "y": 710,
+                  "x": 3592.1552734375,
+                  "y": 709.9996337890625,
                   "width": 150,
                   "height": 70
                 }
@@ -1763,43 +1825,85 @@
                   "fuente": "at-gwconf",
                   "destino": "at-aplicar",
                   "descripcion": "Sin conflicto",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 2628.09912109375,
+                      "y": 866.11572265625
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-gwconf",
                   "destino": "at-lww",
                   "descripcion": "Conflicto asistencial",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 2557.02490234375,
+                      "y": 991.7355346679688
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-gwconf",
                   "destino": "at-rechazar",
                   "descripcion": "Cupo o receta firmada",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 2623.140380859375,
+                      "y": 728.0991821289062
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-aplicar",
                   "destino": "at-audit",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 3030.57861328125,
+                      "y": 867.7686157226562
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-lww",
                   "destino": "at-audit",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 3117.35546875,
+                      "y": 992.56201171875
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-audit",
                   "destino": "at-marcar",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 3263.90966796875,
+                      "y": 754.1353149414062
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-marcar",
                   "destino": "at-metricas",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 3401.204833984375,
+                      "y": 955.4216918945312
+                    }
+                  ]
                 },
                 {
                   "fuente": "at-metricas",
@@ -1808,8 +1912,8 @@
                   "routing": "orthogonal"
                 }
               ],
-              "x": 60,
-              "y": 680,
+              "x": 57.669921875,
+              "y": 680.7518920898438,
               "width": 3715,
               "height": 370,
               "tipo_contenedor": "Carril",
@@ -1818,17 +1922,109 @@
             }
           ],
           "read_models": [],
-          "politicas_inter_agregados": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "at-admitir",
+              "destino": "at-video",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "sourceAnchor": {
+                "x": 0.49848480224609376,
+                "y": 0.8974358485295222
+              },
+              "midpoints": [
+                {
+                  "x": 416,
+                  "y": 300
+                }
+              ]
+            },
+            {
+              "fuente": "at-video",
+              "destino": "at-signos",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 633.3333129882812,
+                  "y": 134.6666717529297
+                }
+              ]
+            },
+            {
+              "fuente": "at-signos",
+              "destino": "at-nota",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1061.3333740234375,
+                  "y": 132
+                }
+              ]
+            },
+            {
+              "fuente": "at-nota",
+              "destino": "at-gwconn",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1057.3333740234375,
+                  "y": 448
+                }
+              ]
+            },
+            {
+              "fuente": "at-envia",
+              "destino": "at-sync",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "targetAnchor": {
+                "x": 0.9104592063210227,
+                "y": 0.011584942157451924
+              },
+              "midpoints": [
+                {
+                  "x": 2128,
+                  "y": 465.3333435058594
+                }
+              ]
+            },
+            {
+              "fuente": "at-reenvia",
+              "destino": "at-sync",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1990.3614501953125,
+                  "y": 725.3012084960938
+                }
+              ]
+            },
+            {
+              "fuente": "at-rechazar",
+              "destino": "at-reintentar",
+              "descripcion": "pide reintento",
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "at-reintentar",
+              "destino": "at-envia",
+              "descripcion": "vuelve a enviar",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1521.3333740234375,
+                  "y": 137.3333282470703
+                }
+              ]
+            }
+          ],
           "responsables": [],
           "notas": "",
-          "transcript": "",
-          "source_docs": [
-            {
-              "nombre": "Taller BPMN.pdf",
-              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
-              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
-            }
-          ]
+          "transcript": ""
         },
         "createdAt": "2026-11-07T15:00:00.000Z"
       },
@@ -1850,32 +2046,7 @@
               "Cómo recibe la farmacia la receta (sistema propio, impresión o correo): lo deja abierto el caso"
             ],
             "nodos": [],
-            "aristas": [
-              {
-                "fuente": "pr-firmar",
-                "destino": "pr-gwfirma",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "pr-gwfirma",
-                "destino": "pr-corregir",
-                "descripcion": "No (firma inválida)",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "pr-notif",
-                "destino": "pr-pac",
-                "descripcion": "mensaje: receta emitida",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "pr-publicar",
-                "destino": "pr-farm",
-                "descripcion": "mensaje: receta firmada",
-                "routing": "orthogonal"
-              }
-            ]
+            "aristas": []
           },
           "agregados": [
             {
@@ -1971,7 +2142,7 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 520,
+                  "x": 606.8131713867188,
                   "y": 80,
                   "width": 190,
                   "height": 90
@@ -2011,8 +2182,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 735,
-                  "y": 190,
+                  "x": 947.0879516601562,
+                  "y": 82.30770874023438,
                   "width": 190,
                   "height": 90
                 }
@@ -2098,8 +2269,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 950,
-                  "y": 360,
+                  "x": 883.6362915039062,
+                  "y": 489.09088134765625,
                   "width": 190,
                   "height": 90
                 },
@@ -2138,7 +2309,7 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1165,
+                  "x": 1097.727294921875,
                   "y": 360,
                   "width": 190,
                   "height": 90
@@ -2178,8 +2349,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1380,
-                  "y": 360,
+                  "x": 1362.727294921875,
+                  "y": 360.9090881347656,
                   "width": 190,
                   "height": 90
                 },
@@ -2218,8 +2389,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1595,
-                  "y": 360,
+                  "x": 1611.363525390625,
+                  "y": 361.8182067871094,
                   "width": 190,
                   "height": 90
                 },
@@ -2244,8 +2415,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 5",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2045,
-                  "y": 370,
+                  "x": 2185.10107421875,
+                  "y": 359.4731750488281,
                   "width": 150,
                   "height": 70
                 },
@@ -2257,8 +2428,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 5",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2045,
-                  "y": 480,
+                  "x": 1828.4710693359375,
+                  "y": 476.6942138671875,
                   "width": 150,
                   "height": 70
                 },
@@ -2337,8 +2508,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 2240,
-                  "y": 580,
+                  "x": 2339.091064453125,
+                  "y": 581.8181762695312,
                   "width": 190,
                   "height": 90
                 },
@@ -2350,8 +2521,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 5",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2475,
-                  "y": 590,
+                  "x": 2575,
+                  "y": 602.727294921875,
                   "width": 150,
                   "height": 70
                 }
@@ -2361,13 +2532,25 @@
                   "fuente": "pr-gwfirma",
                   "destino": "pr-emitir",
                   "descripcion": "Sí",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 992.727294921875,
+                      "y": 390.9090881347656
+                    }
+                  ]
                 },
                 {
                   "fuente": "pr-emitir",
                   "destino": "pr-audit",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 1208.1817626953125,
+                      "y": 540.9091186523438
+                    }
+                  ]
                 },
                 {
                   "fuente": "pr-audit",
@@ -2403,13 +2586,37 @@
                   "fuente": "pr-timer",
                   "destino": "pr-publicar",
                   "descripcion": "reintenta",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "targetAnchor": {
+                    "x": 0.6168085271661932,
+                    "y": 0.9845836345966046
+                  },
+                  "midpoints": [
+                    {
+                      "x": 1746.828125,
+                      "y": 506.3484191894531
+                    }
+                  ]
                 },
                 {
                   "fuente": "pr-gwcola",
                   "destino": "pr-dlq",
                   "descripcion": "No, reintentos agotados",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "sourceAnchor": {
+                    "x": 0.6854339599609375,
+                    "y": 0.5013773600260417
+                  },
+                  "midpoints": [
+                    {
+                      "x": 2133.333251953125,
+                      "y": 390
+                    }
+                  ],
+                  "labelOffset": {
+                    "x": 10.612590141515739,
+                    "y": 86.37019166212389
+                  }
                 },
                 {
                   "fuente": "pr-dlq",
@@ -2446,11 +2653,11 @@
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
                   "estilo": {
-                    "fondo": "#06b6d4",
-                    "colorTexto": "#ffffff"
+                    "colorTexto": "#ffffff",
+                    "fondo": "#06b6d4"
                   },
-                  "x": 1380,
-                  "y": 750,
+                  "x": 1363.6363525390625,
+                  "y": 752.7272338867188,
                   "width": 190,
                   "height": 90
                 }
@@ -2478,11 +2685,11 @@
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
                   "estilo": {
-                    "fondo": "#06b6d4",
-                    "colorTexto": "#ffffff"
+                    "colorTexto": "#ffffff",
+                    "fondo": "#06b6d4"
                   },
-                  "x": 2025,
-                  "y": 920,
+                  "x": 1827.6087646484375,
+                  "y": 932.1739501953125,
                   "width": 190,
                   "height": 90
                 }
@@ -2498,17 +2705,53 @@
             }
           ],
           "read_models": [],
-          "politicas_inter_agregados": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "pr-firmar",
+              "destino": "pr-gwfirma",
+              "descripcion": "",
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "pr-gwfirma",
+              "destino": "pr-corregir",
+              "descripcion": "No (firma inválida)",
+              "routing": "orthogonal",
+              "targetAnchor": {
+                "x": 0.44530445445667616,
+                "y": 0.9520285679743841
+              },
+              "midpoints": [
+                {
+                  "x": 834.06591796875,
+                  "y": 218.6813201904297
+                },
+                {
+                  "x": 1044.099365234375,
+                  "y": 215.5279541015625
+                }
+              ],
+              "labelOffset": {
+                "x": 44.685215303363634,
+                "y": 0.982056637888661
+              }
+            },
+            {
+              "fuente": "pr-notif",
+              "destino": "pr-pac",
+              "descripcion": "mensaje: receta emitida",
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "pr-publicar",
+              "destino": "pr-farm",
+              "descripcion": "mensaje: receta firmada",
+              "routing": "orthogonal"
+            }
+          ],
           "responsables": [],
           "notas": "",
-          "transcript": "",
-          "source_docs": [
-            {
-              "nombre": "Taller BPMN.pdf",
-              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
-              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
-            }
-          ]
+          "transcript": ""
         },
         "createdAt": "2026-11-07T15:00:00.000Z"
       },
@@ -2529,44 +2772,7 @@
               "Caducidad de la vista: se muestra al especialista con la marca de frescura, no se resuelve en silencio"
             ],
             "nodos": [],
-            "aristas": [
-              {
-                "fuente": "hi-solicitar",
-                "destino": "hi-autorizar",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "hi-gwvista",
-                "destino": "hi-mostrar",
-                "descripcion": "Sí (dato en vista)",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "hi-traducir",
-                "destino": "hi-mostrar",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "hi-mostrar",
-                "destino": "hi-audit",
-                "descripcion": "",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "hi-legado",
-                "destino": "hi-leg",
-                "descripcion": "mensaje: consulta [SOAP]",
-                "routing": "orthogonal"
-              },
-              {
-                "fuente": "hi-leg",
-                "destino": "hi-traducir",
-                "descripcion": "mensaje: respuesta [SOAP]",
-                "routing": "orthogonal"
-              }
-            ]
+            "aristas": []
           },
           "agregados": [
             {
@@ -2777,8 +2983,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 950,
-                  "y": 360,
+                  "x": 930.6123046875,
+                  "y": 404.8979797363281,
                   "width": 190,
                   "height": 90
                 },
@@ -2790,8 +2996,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 6",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 1185,
-                  "y": 370,
+                  "x": 1208.4693603515625,
+                  "y": 426.1224670410156,
                   "width": 150,
                   "height": 70
                 },
@@ -2843,8 +3049,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 6",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 1185,
-                  "y": 250,
+                  "x": 1194.1837158203125,
+                  "y": 255.10202026367188,
                   "width": 150,
                   "height": 90
                 },
@@ -2936,8 +3142,8 @@
                       "tipo": "texto"
                     }
                   ],
-                  "x": 1810,
-                  "y": 360,
+                  "x": 1817.56298828125,
+                  "y": 338.1512451171875,
                   "width": 190,
                   "height": 90
                 },
@@ -2989,8 +3195,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 6",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2045,
-                  "y": 480,
+                  "x": 2119.789794921875,
+                  "y": 490.9243469238281,
                   "width": 150,
                   "height": 70
                 },
@@ -3042,8 +3248,8 @@
                   "fuente": "Taller BPMN.pdf:Bloque 6",
                   "estado_comparativo": "nuevo",
                   "tags_tecnologia": null,
-                  "x": 2475,
-                  "y": 260,
+                  "x": 2515.336181640625,
+                  "y": 272.60504150390625,
                   "width": 150,
                   "height": 70
                 }
@@ -3059,13 +3265,29 @@
                   "fuente": "hi-gwacc",
                   "destino": "hi-buscar",
                   "descripcion": "Sí",
-                  "routing": "orthogonal"
+                  "routing": "straight",
+                  "targetAnchor": {
+                    "x": 0.0046381170099431815,
+                    "y": 0.16679734450120193
+                  },
+                  "midpoints": [
+                    {
+                      "x": 912.244873046875,
+                      "y": 275.51019287109375
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-gwacc",
                   "destino": "hi-deneg",
                   "descripcion": "No",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 833.6734619140625,
+                      "y": 456.1224365234375
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-deneg",
@@ -3077,13 +3299,29 @@
                   "fuente": "hi-buscar",
                   "destino": "hi-gwvista",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 1196.938720703125,
+                      "y": 287.7550964355469
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-gwvista",
                   "destino": "hi-legado",
                   "descripcion": "No",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "targetAnchor": {
+                    "x": 0.012059437144886364,
+                    "y": 0.4532966613769531
+                  },
+                  "midpoints": [
+                    {
+                      "x": 1274.0506591796875,
+                      "y": 408.22784423828125
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-legado",
@@ -3101,13 +3339,29 @@
                   "fuente": "hi-gwleg",
                   "destino": "hi-nodisp",
                   "descripcion": "No (sin respuesta)",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "targetAnchor": {
+                    "x": 0.008021129261363636,
+                    "y": 0.3935036292442909
+                  },
+                  "midpoints": [
+                    {
+                      "x": 1694.9580078125,
+                      "y": 511.76470947265625
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-nodisp",
                   "destino": "hi-fin-err",
                   "descripcion": "",
-                  "routing": "orthogonal"
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 2094.95947265625,
+                      "y": 520.167724609375
+                    }
+                  ]
                 },
                 {
                   "fuente": "hi-audit",
@@ -3138,8 +3392,8 @@
                   "estado_comparativo": "existente",
                   "tags_tecnologia": null,
                   "estilo": {
-                    "fondo": "#06b6d4",
-                    "colorTexto": "#ffffff"
+                    "colorTexto": "#ffffff",
+                    "fondo": "#06b6d4"
                   },
                   "x": 1380,
                   "y": 640,
@@ -3149,7 +3403,7 @@
               ],
               "aristas": [],
               "x": 60,
-              "y": 620,
+              "y": 627.56298828125,
               "width": 2640,
               "height": 150,
               "tipo_contenedor": "Pool",
@@ -3158,17 +3412,79 @@
             }
           ],
           "read_models": [],
-          "politicas_inter_agregados": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "hi-solicitar",
+              "destino": "hi-autorizar",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 630.6122436523438,
+                  "y": 134.69387817382812
+                }
+              ]
+            },
+            {
+              "fuente": "hi-gwvista",
+              "destino": "hi-mostrar",
+              "descripcion": "Sí (dato en vista)",
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "hi-traducir",
+              "destino": "hi-mostrar",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1929.4117431640625,
+                  "y": 247.05882263183594
+                },
+                {
+                  "x": 2135.294189453125,
+                  "y": 247.89915466308594
+                }
+              ]
+            },
+            {
+              "fuente": "hi-mostrar",
+              "destino": "hi-audit",
+              "descripcion": "",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 2350.420166015625,
+                  "y": 133.6134490966797
+                }
+              ]
+            },
+            {
+              "fuente": "hi-legado",
+              "destino": "hi-leg",
+              "descripcion": "mensaje: consulta [SOAP]",
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "hi-leg",
+              "destino": "hi-traducir",
+              "descripcion": "mensaje: respuesta [SOAP]",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 1574.791015625,
+                  "y": 512.604736328125
+                }
+              ],
+              "labelOffset": {
+                "x": -31.47673561831334,
+                "y": 3.636717646730858
+              }
+            }
+          ],
           "responsables": [],
           "notas": "",
-          "transcript": "",
-          "source_docs": [
-            {
-              "nombre": "Taller BPMN.pdf",
-              "texto": "Taller BPMN — RedSalud Andina (resumen). Regla de oro: toda tarea declara contexto delimitado dueño, dato que produce y evento que emite. Contextos: Identidad y acceso, Agenda, Episodio clínico, Receta, Interconsulta, Integración legado, Auditoría, Analítica de uso. Bloque 2 Pool y carriles (14 centros rurales, 9 especialistas, legado que no se modifica; sistemas externos como pools). Bloque 3 Agendamiento (consistencia fuerte, gateway de disponibilidad como invariante). Bloque 4 Atención con y sin conectividad (gateway de conectividad, cola con UUID/ULID, sincronización en 15 min o menos, conflicto: último escritor en lo asistencial, rechazo en cupos y recetas firmadas). Bloque 5 Receta (firma como compuerta dura, envío asíncrono a cola). Bloque 6 Historial (vista de lectura propia con p95 de 2 s o menos; caída al SOAP en 6 s o menos; camino de error si el SOAP cae). Bloque 7 Coherencia (cada tarea con contexto dueño; viewRef que resuelven; auditoría en los cuatro procesos).",
-              "origen": "Taller BPMN — RedSalud Andina (ProcessFlow Architect), resumen de las reglas y bloques usados"
-            }
-          ]
+          "transcript": ""
         },
         "createdAt": "2026-11-07T15:00:00.000Z"
       }
