@@ -1,0 +1,2915 @@
+{
+  "formato": "processflow-board/v1",
+  "proyecto": {
+    "nombre_proyecto": "monolito_modulas",
+    "version": "1.0.0",
+    "notation": "ddd",
+    "fecha_analisis": "2026-11-14",
+    "big_picture": {
+      "descripcion": "Mapa de contextos del monolito modular Spring Boot de RedSalud Andina (teleconsulta rural): 9 módulos agrupados por subdominio, sus relaciones por eventos y la frontera anticorrupción con el legado.",
+      "hotspots": [
+        "ADR-01 (Aurora como store transaccional único) contradice el mapa de datos: Identidad en Cognito + DynamoDB",
+        "Episodio clínico: 'fuerte en el agregado' vs last-writer-wins por campo offline — definir qué campos admiten LWW"
+      ],
+      "nodos": [
+        {
+          "id": "act-borde",
+          "nombre": "Centro rural (borde)",
+          "tipo_elemento": "Actor",
+          "descripcion": "Médico rural operando desde el cliente offline-first del centro: registra localmente con id UUID/ULID y sello de tiempo, encola eventos de salida con reintentos y orden por agregado, y reserva cupos cuando hay enlace. Cinco de los 14 centros tienen 2 Mbps con cortes diarios.",
+          "fuente": "Analisis del Caso:11,12 · Taller - Caso de Uso:1",
+          "estado_comparativo": "nuevo",
+          "tags_tecnologia": null,
+          "x": 356,
+          "y": 60,
+          "width": 220,
+          "height": 104
+        },
+        {
+          "id": "ext-video",
+          "nombre": "Video gestionado",
+          "tipo_elemento": "Sistema Externo",
+          "descripcion": "Servicio gestionado de video WebRTC que transporta la videoconsulta sin servidor propio y soporta 40 teleconsultas simultáneas con señalización ≤ 300 ms. Pendiente en la fuente: qué servicio concreto de AWS se usa.",
+          "fuente": "Taller - Caso de Uso:3,4 (RF-03)",
+          "estado_comparativo": "nuevo",
+          "tags_tecnologia": [
+            "WebRTC"
+          ],
+          "x": 652,
+          "y": 60,
+          "width": 220,
+          "height": 104
+        },
+        {
+          "id": "ext-legado",
+          "nombre": "Legado clínico",
+          "tipo_elemento": "Sistema Externo",
+          "descripcion": "Sistema on-premise de historias clínicas que no puede modificarse; solo expone una API SOAP nocturna y una base de datos de solo lectura, y responde en horario de oficina. Es la fuente de verdad del historial.",
+          "fuente": "Taller - Caso de Uso:1 · Analisis del Caso:10",
+          "estado_comparativo": "existente",
+          "tags_tecnologia": [
+            "SOAP"
+          ],
+          "x": 60,
+          "y": 60,
+          "width": 220,
+          "height": 104
+        },
+        {
+          "id": "ext-farmacia",
+          "nombre": "Farmacia del centro",
+          "tipo_elemento": "Sistema Externo",
+          "descripcion": "Farmacia de cada centro que recibe la receta electrónica firmada de forma eventual a través de una cola SQS.",
+          "fuente": "Taller - Caso de Uso:2 (RF-05) · Analisis del Caso:5",
+          "estado_comparativo": "nuevo",
+          "tags_tecnologia": [
+            "Amazon SQS"
+          ],
+          "x": 60,
+          "y": 240,
+          "width": 220,
+          "height": 104
+        },
+        {
+          "id": "pl-eventos",
+          "nombre": "Eventos de dominio",
+          "tipo_elemento": "Lenguaje Publicado (PL)",
+          "descripcion": "Contrato publicado de eventos entre módulos (CupoReservado, PacienteAtendido, RecetaFirmada, InterconsultaCerrada, LoteAplicado, AccesoDenegado) emitido con transactional outbox sobre Aurora y distribuido por SQS/EventBridge. Es la única vía de comunicación entre módulos: no hay acceso cruzado a tablas ni @ManyToOne entre módulos.",
+          "fuente": "Analisis del Caso:9 · Taller de Java y Spring boot:4,6",
+          "estado_comparativo": "nuevo",
+          "tags_tecnologia": [
+            "Amazon SQS",
+            "Amazon EventBridge"
+          ],
+          "x": 356,
+          "y": 240,
+          "width": 220,
+          "height": 104
+        }
+      ],
+      "aristas": [
+        {
+          "fuente": "m-episodio",
+          "destino": "pl-eventos",
+          "descripcion": "PacienteAtendido, Lectura",
+          "routing": "straight",
+          "targetAnchor": {
+            "x": 1,
+            "y": 0.8333097604604868
+          }
+        },
+        {
+          "fuente": "pl-eventos",
+          "destino": "m-interconsulta",
+          "descripcion": "avanza estado",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 1501,
+              "y": 292
+            }
+          ],
+          "geometriaAuto": true,
+          "labelOffset": {
+            "x": -11.292236328125,
+            "y": 5.792877197265625
+          }
+        },
+        {
+          "fuente": "pl-eventos",
+          "destino": "m-analitica",
+          "descripcion": "proyecta (seudonimizado)",
+          "routing": "straight"
+        },
+        {
+          "fuente": "m-episodio",
+          "destino": "ext-video",
+          "descripcion": "abre sala [WebRTC]",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 1323,
+              "y": 369
+            },
+            {
+              "x": 1323,
+              "y": 112
+            }
+          ],
+          "geometriaAuto": true
+        },
+        {
+          "fuente": "acl-legado",
+          "destino": "ext-legado",
+          "descripcion": "traduce [SOAP]",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 34,
+              "y": 832
+            },
+            {
+              "x": 34,
+              "y": 112
+            }
+          ],
+          "geometriaAuto": true
+        },
+        {
+          "fuente": "pl-eventos",
+          "destino": "m-auditoria",
+          "descripcion": "registra LecturaClínica",
+          "routing": "straight"
+        },
+        {
+          "fuente": "m-legado",
+          "destino": "pl-eventos",
+          "descripcion": "publica LecturaClínica",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 469.1488952636719,
+              "y": 636.1702270507812
+            }
+          ]
+        },
+        {
+          "fuente": "m-receta",
+          "destino": "pl-eventos",
+          "descripcion": "publica RecetaFirmada",
+          "targetAnchor": {
+            "x": 1,
+            "y": 0.12235142634465145
+          }
+        },
+        {
+          "fuente": "m-receta",
+          "destino": "ext-farmacia",
+          "descripcion": "envía receta [SQS]",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 170,
+              "y": 189
+            }
+          ],
+          "geometriaAuto": true
+        },
+        {
+          "fuente": "act-borde",
+          "destino": "m-agenda",
+          "descripcion": "reserva cupo",
+          "routing": "orthogonal",
+          "midpoints": [
+            {
+              "x": 466,
+              "y": 30.5
+            },
+            {
+              "x": 1501,
+              "y": 30.5
+            }
+          ],
+          "geometriaAuto": true
+        },
+        {
+          "fuente": "m-agenda",
+          "destino": "pl-eventos",
+          "descripcion": "publica CupoReservado",
+          "routing": "orthogonal",
+          "targetAnchor": {
+            "x": 1,
+            "y": 0.3088323152982272
+          },
+          "midpoints": [
+            {
+              "x": 1499.3994140625,
+              "y": 273.936767578125
+            }
+          ],
+          "labelOffset": {
+            "x": -181.37636016880288,
+            "y": -4.679025754620966
+          }
+        },
+        {
+          "fuente": "act-borde",
+          "destino": "m-sync",
+          "descripcion": "envía lotes [HTTPS]",
+          "routing": "straight"
+        }
+      ]
+    },
+    "agregados": [
+      {
+        "nombre_agregado": "Soporte",
+        "entidad_raiz": "Subdominio de soporte: módulos que hacen posible operar al núcleo en las condiciones del caso — legado no modificable, enlaces rurales intermitentes e indicadores de gestión — sin ser el negocio en sí.",
+        "descripcion": "Subdominio de soporte: módulos que hacen posible operar al núcleo en las condiciones del caso — legado no modificable, enlaces rurales intermitentes e indicadores de gestión — sin ser el negocio en sí.",
+        "nodos": [
+          {
+            "id": "m-legado",
+            "nombre": "Historial (legado)",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Integración legado: mantiene un read model propio del historial clínico (id de paciente, episodios, documentos y marca de frescura) que el especialista consulta en p95 ≤ 2 s; si el dato no está, cae a la consulta directa al legado (≤ 6 s). Es copia de lectura con caducidad visible; la fuente de verdad sigue siendo el legado.",
+            "fuente": "Analisis del Caso:7,10 · Taller de Java y Spring boot:5 (RF-06)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Resilience4j",
+              "ElastiCache"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.legado",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "legado_readmodel",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Eventual con TTL explícito",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "996f6ceb-ed0f-468f-ac15-49764a03ffbb",
+            "x": 541.2340087890625,
+            "y": 581.9149169921875,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-analitica",
+            "nombre": "Analítica de uso",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo de solo lectura que calcula teleconsultas por centro, tiempo de espera y tasa de cierre a partir de los eventos de dominio, sobre réplica de lectura o export S3 + Athena, nunca sobre la base transaccional. Agrega y seudonimiza antes de sacar datos del dominio clínico. Incluido por decisión del usuario aunque el taller no lo implementa.",
+            "fuente": "Analisis del Caso:9,15 · Taller - Caso de Uso:2 (RF-10)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Amazon Athena",
+              "Amazon S3"
+            ],
+            "icono": "lu-Archive",
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.analitica",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Eventual",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "835eb5d7-c755-4e6f-8421-9c7593fd6e4f",
+            "x": 161.98214721679688,
+            "y": 613.2744140625,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "acl-legado",
+            "nombre": "ACL Historial",
+            "tipo_elemento": "Capa Anticorrupción (ACL)",
+            "descripcion": "Adaptador anticorrupción que implementa HistorialClinicoPort: consume el SOAP nocturno y la BD de solo lectura del legado con WebServiceTemplate, timeouts y circuit breaker, y traduce su modelo al modelo canónico del dominio. Toda la traducción vive aquí, para que cambiar de proveedor toque un solo módulo.",
+            "fuente": "Analisis del Caso:10,16 · Taller de Java y Spring boot:5",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Web Services",
+              "Resilience4j"
+            ],
+            "x": 199.72457885742188,
+            "y": 778.5784912109375,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-sync",
+            "nombre": "OHS Sincronización",
+            "tipo_elemento": "Servicio de Host Abierto (OHS)",
+            "descripcion": "Protocolo público e idempotente (POST /sync con Idempotency-Key = ULID del cliente) por el que los centros rurales envían sus lotes offline; no es un contexto delimitado, solo deduplica y entrega cada cambio, en orden por agregado, al módulo dueño. La política de conflictos vive en ese módulo: last-writer-wins por campo en Episodio (ambos valores van a auditoría por evento) y rechazo con reintento en cupos y recetas firmadas. Meta: ≤ 15 min tras reconexión y 0 pérdida.",
+            "fuente": "Caso RedSalud Andina §4 · ADR-03 · Taller de Java y Spring boot:6 (RF-09)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Web",
+              "Amazon SQS"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.sincronizacion",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "sincronizacion",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Idempotente",
+                "tipo": "texto"
+              }
+            ],
+            "x": 442.2978515625,
+            "y": 780,
+            "width": 220,
+            "height": 104
+          }
+        ],
+        "aristas": [
+          {
+            "fuente": "m-legado",
+            "destino": "acl-legado",
+            "descripcion": "lee vía puerto",
+            "routing": "straight",
+            "midpoints": [
+              {
+                "x": 466,
+                "y": 652
+              },
+              {
+                "x": 466,
+                "y": 832
+              }
+            ],
+            "geometriaAuto": true
+          }
+        ],
+        "x": 60,
+        "y": 523,
+        "width": 809.14892578125,
+        "height": 466.3616943359375,
+        "tipo_contenedor": "Subdominio",
+        "fuente": "Analisis del Caso §3, §4, §6",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Núcleo clínico",
+        "entidad_raiz": "Subdominio central (Core): los módulos que sostienen la teleconsulta de especialidad entre centros rurales y especialistas itinerantes, y donde se concentra la consistencia fuerte (cupos y recetas firmadas).",
+        "descripcion": "Subdominio central (Core): los módulos que sostienen la teleconsulta de especialidad entre centros rurales y especialistas itinerantes, y donde se concentra la consistencia fuerte (cupos y recetas firmadas).",
+        "nodos": [
+          {
+            "id": "m-receta",
+            "nombre": "Receta",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Receta: el especialista emite la receta electrónica firmada, que se persiste con consistencia fuerte local y se envía de forma eventual a la farmacia del centro por una cola SQS. Una receta firmada no se resuelve en el borde: ante conflicto se rechaza y se reintenta contra el servidor.",
+            "fuente": "Analisis del Caso:5,13 · Taller de Java y Spring boot:7 (RF-05)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Data JPA",
+              "Amazon SQS"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.receta",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "receta",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Fuerte local, eventual hacia farmacia",
+                "tipo": "texto"
+              }
+            ],
+            "x": 1095,
+            "y": 137,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-agenda",
+            "nombre": "Agenda · Cupo",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Agenda: publica los cupos de los 9 especialistas y gestiona reservas desde cualquier centro con bloqueo optimista (@Version), garantizando cero doble reserva. Publica CupoReservado para que otros módulos reaccionen sin JOIN entre esquemas.",
+            "fuente": "Analisis del Caso:3 · Taller de Java y Spring boot:4,6 (RF-02)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Data JPA",
+              "Aurora PostgreSQL"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.agenda",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "agenda",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Fuerte",
+                "tipo": "texto"
+              }
+            ],
+            "x": 1391,
+            "y": 137,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-episodio",
+            "nombre": "Episodio clínico",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Episodio clínico: sostiene la teleconsulta con sala de espera, admisión y asistencia, y los adjuntos (exámenes e imágenes) cifrados en S3 con KMS. Es el agregado que recibe los episodios registrados sin conexión en el borde.",
+            "fuente": "Analisis del Caso:4 · Taller de Java y Spring boot:7 (RF-03, RF-04, RF-09)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Data JPA",
+              "Aurora PostgreSQL",
+              "Amazon S3"
+            ],
+            "icono": "lu-Archive",
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.episodio",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "episodio",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Fuerte en el agregado",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "ad287672-3ee2-4fda-bc26-58c70762d1e0",
+            "x": 1095,
+            "y": 317,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-interconsulta",
+            "nombre": "Interconsulta",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Interconsulta: máquina de estados solicitada → agendada → atendida → cerrada que avanza con los eventos de Agenda y Episodio, y alerta al gestor de red sobre las pendientes (ataca el 38 % de interconsultas perdidas).",
+            "fuente": "Analisis del Caso:6 · Taller - Caso de Uso:1,2 (RF-07)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Data JPA",
+              "Amazon EventBridge"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.interconsulta",
+                "tipo": "texto"
+              },
+              {
+                "clave": "esquema",
+                "valor": "interconsulta",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Fuerte",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "32a3c136-4bf4-44ce-bf8e-ae124afc1006",
+            "x": 1391,
+            "y": 317,
+            "width": 220,
+            "height": 104
+          }
+        ],
+        "aristas": [
+          {
+            "fuente": "m-receta",
+            "destino": "m-episodio",
+            "descripcion": "referencia por id",
+            "labelOffset": {
+              "x": -0.5860595703125,
+              "y": -17.971893310546875
+            }
+          }
+        ],
+        "x": 1023,
+        "y": 60,
+        "width": 660,
+        "height": 402,
+        "tipo_contenedor": "Subdominio",
+        "fuente": "Taller - Caso de Uso §1, §5",
+        "estado_comparativo": "nuevo"
+      },
+      {
+        "nombre_agregado": "Genérico",
+        "entidad_raiz": "Subdominio genérico y transversal: identidad con roles y atributos y auditoría append-only. Lo usan todos los módulos y se apoya en servicios gestionados (Cognito, S3 Object Lock).",
+        "descripcion": "Subdominio genérico y transversal: identidad con roles y atributos y auditoría append-only. Lo usan todos los módulos y se apoya en servicios gestionados (Cognito, S3 Object Lock).",
+        "nodos": [
+          {
+            "id": "m-identidad",
+            "nombre": "Identidad",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Identidad: registra y autentica pacientes, médicos rurales y especialistas, y entrega roles y atributos (centro, especialidad, relación con el paciente) para que cada módulo evalúe la autorización en el punto de acceso al dato con @PreAuthorize y un AuthorizationManager propio.",
+            "fuente": "Analisis del Caso:2,14 · Taller de Java y Spring boot:4,7 (RF-01)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Spring Security",
+              "Amazon Cognito"
+            ],
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.identidad",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Fuerte",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "cca2fb33-3798-43da-8b9f-17e60283d060",
+            "x": 1391,
+            "y": 600,
+            "width": 220,
+            "height": 104
+          },
+          {
+            "id": "m-auditoria",
+            "nombre": "Auditoría",
+            "tipo_elemento": "Raíz de Agregado",
+            "descripcion": "Módulo Auditoría: registra cada acceso a datos clínicos (usuario, fecha, recurso y motivo), las denegaciones y los dos valores de todo campo en conflicto, en un almacén append-only (S3 Object Lock, modo compliance). Produce el reporte reproducible «quién vio este documento y con qué motivo».",
+            "fuente": "Analisis del Caso:8,14 · Taller de Java y Spring boot:7 (RF-08)",
+            "estado_comparativo": "nuevo",
+            "tags_tecnologia": [
+              "Amazon S3",
+              "Object Lock"
+            ],
+            "icono": "lu-Archive",
+            "metadata": [
+              {
+                "clave": "paquete",
+                "valor": "com.redsaludandina.auditoria",
+                "tipo": "texto"
+              },
+              {
+                "clave": "consistencia",
+                "valor": "Inmutable",
+                "tipo": "texto"
+              }
+            ],
+            "viewRef": "bd5913b4-4ece-4327-86d6-10e16b026e71",
+            "x": 1095,
+            "y": 600,
+            "width": 220,
+            "height": 104
+          }
+        ],
+        "aristas": [],
+        "x": 1023,
+        "y": 523,
+        "width": 660,
+        "height": 402,
+        "tipo_contenedor": "Subdominio",
+        "fuente": "Taller de Java y Spring boot §5 (transversal obligatorio)",
+        "estado_comparativo": "nuevo"
+      }
+    ],
+    "read_models": [],
+    "politicas_inter_agregados": [
+      {
+        "fuente": "m-sync",
+        "destino": "m-episodio",
+        "descripcion": "aplica cambios",
+        "routing": "orthogonal",
+        "midpoints": [
+          {
+            "x": 1323,
+            "y": 832
+          },
+          {
+            "x": 1323,
+            "y": 369
+          }
+        ],
+        "geometriaAuto": true
+      },
+      {
+        "fuente": "m-episodio",
+        "destino": "m-legado",
+        "descripcion": "consulta historial"
+      },
+      {
+        "fuente": "m-episodio",
+        "destino": "m-identidad",
+        "descripcion": "autoriza rol+atributo",
+        "relation": "dependencia"
+      },
+      {
+        "fuente": "m-legado",
+        "destino": "m-identidad",
+        "descripcion": "autoriza rol+atributo",
+        "routing": "orthogonal",
+        "midpoints": [
+          {
+            "x": 648.9361572265625,
+            "y": 722.3404541015625
+          },
+          {
+            "x": 1501,
+            "y": 712
+          }
+        ]
+      }
+    ],
+    "responsables": [
+      "Equipo de arquitectura del taller"
+    ],
+    "notas": "Convención de paquetes propuesta (package-by-feature, Spring Modulith/ArchUnit): com.redsaludandina.<modulo>.{api, application, domain, infrastructure}. Solo 'api' (incluido api.events) es visible a otros módulos; la comunicación entre módulos es exclusivamente por eventos (outbox → SQS/EventBridge). Cada módulo tiene una vista de detalle «Módulo X».\nPendientes en la fuente: (1) servicio de video gestionado (RF-03) sin servicio AWS concreto; (2) numeración de ADR distinta entre Análisis (ADR-01..05) y Taller (ADR-001..004), y la residencia del dato (ADR-05) no tiene entregable en el taller.\nFuente: Doctiling «Análisis del Caso», «Taller - Caso de Uso», «Taller de Java y Spring boot».\n\n<!-- ambigüedades registradas por el agente -->\n## Decisiones tomadas\n- ¿El monolito tiene 7 u 8 módulos? La sesión 1 pide «7 módulos» y la arquitectura de referencia dibuja 8 (con Sincronización). → 8 módulos, con Sincronización como módulo propio (decidido por el usuario, 2026-11-14).\n- ¿Se incluye el contexto Analítica de uso (RF-10), que el Análisis define pero el taller no implementa? → Se incluye como módulo de solo lectura que consume eventos y lee de réplica/Athena (decidido por el usuario, 2026-11-14). Total: 9 módulos.",
+    "transcript": ""
+  },
+  "vistas": {
+    "customViews": [
+      {
+        "id": "45a46bdc-ad94-45dd-b246-149834a43cf0",
+        "name": "DDD 1 · Mapa de dominio",
+        "kind": "graph",
+        "notation": "general",
+        "graph": {
+          "nombre_proyecto": "DDD 1 · Mapa de dominio",
+          "version": "1.0.0",
+          "notation": "general",
+          "fecha_analisis": "2026-11-21",
+          "big_picture": {
+            "descripcion": "Espacio del problema de RedSalud Andina (teleconsulta rural): subdominios Núcleo, Soporte y Genérico y los contextos delimitados que los resuelven, al estilo del diagrama de dominio de IDDD.",
+            "hotspots": [],
+            "nodos": [
+              {
+                "id": "bc-ext-legado",
+                "nombre": "Legado clínico (ext.)",
+                "tipo_elemento": "Rectángulo Redondeado",
+                "descripcion": "Contexto externo que no se modifica: sistema de historia clínica existente, fuente de verdad del historial, que solo expone SOAP nocturno y una base de solo lectura.",
+                "fuente": "Caso RedSalud Andina:19",
+                "estado_comparativo": "existente",
+                "tags_tecnologia": null,
+                "x": 1000.3544464111328,
+                "y": 903.9367065429688,
+                "width": 220,
+                "height": 104
+              },
+              {
+                "id": "bc-ext-farmacia",
+                "nombre": "Farmacia (ext.)",
+                "tipo_elemento": "Rectángulo Redondeado",
+                "descripcion": "Contexto externo de la farmacia del centro, que recibe las recetas firmadas por una cola SQS con consistencia eventual.",
+                "fuente": "Caso RedSalud Andina:11",
+                "estado_comparativo": "existente",
+                "tags_tecnologia": null,
+                "x": 503,
+                "y": 909,
+                "width": 220,
+                "height": 104
+              }
+            ],
+            "aristas": [
+              {
+                "fuente": "bc-legado",
+                "destino": "bc-ext-legado",
+                "descripcion": "traduce (ACL)",
+                "routing": "straight",
+                "arrow": "none",
+                "midpoints": [
+                  {
+                    "x": 367.5,
+                    "y": 472
+                  },
+                  {
+                    "x": 367.5,
+                    "y": 961
+                  }
+                ],
+                "geometriaAuto": true
+              },
+              {
+                "fuente": "bc-receta",
+                "destino": "bc-ext-farmacia",
+                "descripcion": "receta firmada",
+                "routing": "straight",
+                "arrow": "none",
+                "midpoints": [
+                  {
+                    "x": 397.5,
+                    "y": 472
+                  },
+                  {
+                    "x": 397.5,
+                    "y": 961
+                  }
+                ],
+                "geometriaAuto": true
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Subdominio Núcleo",
+              "entidad_raiz": "Core Domain: lo que diferencia a RedSalud Andina, que es llevar la atención de especialistas a los centros rurales mediante teleconsulta e interconsulta. Aquí va la mayor inversión de modelado.",
+              "descripcion": "Core Domain: lo que diferencia a RedSalud Andina, que es llevar la atención de especialistas a los centros rurales mediante teleconsulta e interconsulta. Aquí va la mayor inversión de modelado.",
+              "nodos": [
+                {
+                  "id": "bc-episodio",
+                  "nombre": "Episodio clínico",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado de la teleconsulta: registra la atención, la asistencia y los adjuntos clínicos (exámenes e imágenes). Es el corazón del servicio a los centros rurales.",
+                  "fuente": "Caso RedSalud Andina:10",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "bc-interconsulta",
+                  "nombre": "Interconsulta",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que lleva el caso del médico rural al especialista y lo sigue por sus estados (solicitada, agendada, atendida, cerrada) con alertas de pendientes.",
+                  "fuente": "Caso RedSalud Andina:12",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 503,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "bc-episodio",
+                  "destino": "bc-interconsulta",
+                  "descripcion": "paciente atendido",
+                  "routing": "straight",
+                  "arrow": "none"
+                }
+              ],
+              "x": 60,
+              "y": 60,
+              "width": 1477,
+              "height": 222,
+              "tipo_contenedor": "Contenedor General",
+              "fuente": "Caso RedSalud Andina:4,10,12",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Subdominio de Soporte",
+              "entidad_raiz": "Supporting Subdomains: capacidades necesarias para que el núcleo funcione (agendar, recetar, leer el historial del legado, medir el uso), propias del negocio pero no diferenciadoras.",
+              "descripcion": "Supporting Subdomains: capacidades necesarias para que el núcleo funcione (agendar, recetar, leer el historial del legado, medir el uso), propias del negocio pero no diferenciadoras.",
+              "nodos": [
+                {
+                  "id": "bc-agenda",
+                  "nombre": "Agenda",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que administra cupos, reservas y la disponibilidad de los 9 especialistas con consistencia fuerte para impedir la doble reserva.",
+                  "fuente": "Caso RedSalud Andina:9",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1245,
+                  "y": 420,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "bc-receta",
+                  "nombre": "Receta",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que emite la receta firmada y la envía a la farmacia del centro; consistencia fuerte local y eventual hacia la farmacia.",
+                  "fuente": "Caso RedSalud Andina:11",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 420,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "bc-legado",
+                  "nombre": "Integración legado",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que protege al dominio del modelo del legado: traduce su historial a un modelo canónico y lo sirve como vista de lectura con caducidad visible.",
+                  "fuente": "Caso RedSalud Andina:13,19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 503,
+                  "y": 420,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "bc-analitica",
+                  "nombre": "Analítica de uso",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que calcula indicadores por centro (teleconsultas, tiempo de espera, tasa de cierre) sobre datos agregados y seudonimizados, fuera del OLTP.",
+                  "fuente": "Caso RedSalud Andina:15,34",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 874,
+                  "y": 420,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "bc-agenda",
+                  "destino": "bc-analitica",
+                  "descripcion": "tiempos de espera",
+                  "routing": "straight",
+                  "arrow": "none"
+                }
+              ],
+              "x": 60,
+              "y": 343,
+              "width": 1477,
+              "height": 222,
+              "tipo_contenedor": "Contenedor General",
+              "fuente": "Caso RedSalud Andina:9,11,13,15",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Subdominio Genérico",
+              "entidad_raiz": "Generic Subdomains: problemas resueltos por el mercado (identidad y acceso, registro de auditoría inmutable) que se compran o configuran en vez de modelarse desde cero.",
+              "descripcion": "Generic Subdomains: problemas resueltos por el mercado (identidad y acceso, registro de auditoría inmutable) que se compran o configuran en vez de modelarse desde cero.",
+              "nodos": [
+                {
+                  "id": "bc-identidad",
+                  "nombre": "Identidad y acceso",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado de pacientes, médicos rurales, especialistas, roles y atributos (centro, especialidad, relación con el paciente) que decide quién puede acceder a qué dato.",
+                  "fuente": "Caso RedSalud Andina:8,29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 703,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "bc-auditoria",
+                  "nombre": "Auditoría",
+                  "tipo_elemento": "Elipse",
+                  "descripcion": "Contexto delimitado que guarda de forma inmutable cada acceso a la historia clínica (usuario, fecha, recurso, motivo) y responde «quién vio este documento y con qué motivo».",
+                  "fuente": "Caso RedSalud Andina:14,30",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 503,
+                  "y": 703,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 626,
+              "width": 1477,
+              "height": 222,
+              "tipo_contenedor": "Contenedor General",
+              "fuente": "Caso RedSalud Andina:8,14",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "bc-agenda",
+              "destino": "bc-interconsulta",
+              "descripcion": "cupo agendado",
+              "routing": "straight",
+              "arrow": "none"
+            },
+            {
+              "fuente": "bc-episodio",
+              "destino": "bc-receta",
+              "descripcion": "receta del episodio",
+              "routing": "straight",
+              "arrow": "none"
+            },
+            {
+              "fuente": "bc-legado",
+              "destino": "bc-episodio",
+              "descripcion": "historial canónico",
+              "routing": "straight",
+              "arrow": "none"
+            },
+            {
+              "fuente": "bc-episodio",
+              "destino": "bc-auditoria",
+              "descripcion": "lectura clínica",
+              "routing": "straight",
+              "arrow": "none"
+            },
+            {
+              "fuente": "bc-identidad",
+              "destino": "bc-episodio",
+              "descripcion": "rol + atributo",
+              "routing": "straight",
+              "arrow": "none",
+              "midpoints": [
+                {
+                  "x": 122,
+                  "y": 755
+                },
+                {
+                  "x": 122,
+                  "y": 189
+                }
+              ],
+              "geometriaAuto": true
+            },
+            {
+              "fuente": "bc-interconsulta",
+              "destino": "bc-analitica",
+              "descripcion": "indicadores",
+              "routing": "straight",
+              "arrow": "none"
+            }
+          ],
+          "responsables": [],
+          "notas": "",
+          "transcript": ""
+        },
+        "createdAt": "2026-11-21T00:35:33.613Z"
+      },
+      {
+        "id": "bf122148-62e6-419e-bdfe-b9cd4690f38b",
+        "name": "DDD 3 · Modelo de dominio",
+        "kind": "graph",
+        "notation": "uml",
+        "graph": {
+          "nombre_proyecto": "DDD 3 · Modelo de dominio",
+          "version": "1.0.0",
+          "notation": "uml",
+          "fecha_analisis": "2026-11-21",
+          "big_picture": {
+            "descripcion": "Diagrama de clases UML del núcleo clínico: agregados Cupo, Episodio, Receta e Interconsulta con sus raíces, entidades y objetos de valor; entre agregados solo hay referencias por identificador.",
+            "hotspots": [],
+            "nodos": [
+              {
+                "id": "dm-id",
+                "nombre": "«VO» IdClínico",
+                "tipo_elemento": "Tipo de Dato",
+                "descripcion": "Identificador ULID generado en el cliente junto con el sello de tiempo del centro; lo usan todas las raíces para que la sincronización offline sea idempotente y no duplique episodios.",
+                "fuente": "Caso RedSalud Andina:23,42",
+                "estado_comparativo": "nuevo",
+                "tags_tecnologia": null,
+                "x": 1245,
+                "y": 879,
+                "width": 220,
+                "height": 104
+              }
+            ],
+            "aristas": [
+              {
+                "fuente": "dm-episodio",
+                "destino": "dm-id",
+                "descripcion": "id (ULID)",
+                "routing": "orthogonal",
+                "relation": "asociacion"
+              },
+              {
+                "fuente": "dm-cupo",
+                "destino": "dm-id",
+                "descripcion": "id (ULID)",
+                "routing": "orthogonal",
+                "relation": "asociacion"
+              },
+              {
+                "fuente": "dm-receta",
+                "destino": "dm-id",
+                "descripcion": "id (ULID)",
+                "routing": "orthogonal",
+                "relation": "asociacion",
+                "sourceAnchor": {
+                  "x": 0.99908447265625,
+                  "y": 0.5319477961613581
+                },
+                "midpoints": [
+                  {
+                    "x": 1356.0523681640625,
+                    "y": 581.3225708007812
+                  }
+                ]
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Agregado Cupo",
+              "entidad_raiz": "Límite de consistencia de Agenda: el cupo y su reserva se modifican en una sola transacción para que nunca haya doble reserva.",
+              "descripcion": "Límite de consistencia de Agenda: el cupo y su reserva se modifican en una sola transacción para que nunca haya doble reserva.",
+              "nodos": [
+                {
+                  "id": "dm-cupo",
+                  "nombre": "«Raíz» Cupo",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Raíz del agregado: franja de un especialista (cupoId, especialistaId, inicio, fin, estado). Garantiza la regla «sin doble reserva» y publica CupoReservado. Atributos: cupoId: IdClínico, especialistaId, franja, estado.",
+                  "fuente": "Caso RedSalud Andina:9",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1616,
+                  "y": 879,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-reserva",
+                  "nombre": "«Entidad» Reserva",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Entidad con identidad propia que ocupa el cupo para un paciente (reservaId, pacienteId, centroId, fecha). Solo existe dentro del cupo; en el borde se rechaza ante conflicto y se reintenta contra el servidor.",
+                  "fuente": "Caso RedSalud Andina:9,25",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1987,
+                  "y": 879,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "dm-cupo",
+                  "destino": "dm-reserva",
+                  "descripcion": "1 ◆ 0..1",
+                  "relation": "composicion"
+                }
+              ],
+              "x": 1544,
+              "y": 802,
+              "width": 735,
+              "height": 222,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:9",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Agregado Episodio",
+              "entidad_raiz": "Límite de consistencia de Episodio clínico: la teleconsulta, su asistencia y sus adjuntos cambian juntos con consistencia fuerte.",
+              "descripcion": "Límite de consistencia de Episodio clínico: la teleconsulta, su asistencia y sus adjuntos cambian juntos con consistencia fuerte.",
+              "nodos": [
+                {
+                  "id": "dm-episodio",
+                  "nombre": "«Raíz» Episodio",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Raíz del agregado: la teleconsulta (episodioId, pacienteId, cupoId, centroId, selloCentro). Resuelve conflictos clínicos por last-writer-wins por campo y publica PacienteAtendido y LecturaClínica.",
+                  "fuente": "Caso RedSalud Andina:10,23,25",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 874,
+                  "y": 879,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-adjunto",
+                  "nombre": "«Entidad» Adjunto",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Examen o imagen asociado al episodio (adjuntoId, tipo, claveS3, hash). El binario vive en S3 cifrado con KMS y sin réplicas fuera de la región; la entidad guarda la referencia.",
+                  "fuente": "Caso RedSalud Andina:10,28",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 989,
+                  "y": 1232,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-asistencia",
+                  "nombre": "«VO» Asistencia",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Objeto de valor inmutable con lo asistencial de la consulta (motivo, hallazgos, conducta); se reemplaza entero y sus campos independientes son los que resuelve last-writer-wins.",
+                  "fuente": "Caso RedSalud Andina:10,25",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 574,
+                  "y": 1097,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "dm-episodio",
+                  "destino": "dm-adjunto",
+                  "descripcion": "1 ◆ 0..*",
+                  "relation": "composicion"
+                },
+                {
+                  "fuente": "dm-episodio",
+                  "destino": "dm-asistencia",
+                  "descripcion": "1 ◆ 1",
+                  "relation": "composicion"
+                }
+              ],
+              "x": 502,
+              "y": 802,
+              "width": 779,
+              "height": 575,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:10",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Agregado Receta",
+              "entidad_raiz": "Límite de consistencia de Receta: una receta firmada es inmutable y no se resuelve en el borde; los conflictos se rechazan y se reintentan contra el servidor.",
+              "descripcion": "Límite de consistencia de Receta: una receta firmada es inmutable y no se resuelve en el borde; los conflictos se rechazan y se reintentan contra el servidor.",
+              "nodos": [
+                {
+                  "id": "dm-receta",
+                  "nombre": "«Raíz» Receta",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Raíz del agregado: prescripción (recetaId, episodioId, medicamentos, estado). Al firmarse queda inmutable, publica RecetaFirmada y se envía a la farmacia.",
+                  "fuente": "Caso RedSalud Andina:11",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 989,
+                  "y": 526,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-firma",
+                  "nombre": "«VO» FirmaDigital",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Objeto de valor con la firma del médico (firmanteId, fecha, sello); su presencia vuelve inmutable a la receta.",
+                  "fuente": "Caso RedSalud Andina:11",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 874,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "dm-receta",
+                  "destino": "dm-firma",
+                  "descripcion": "1 ◆ 0..1",
+                  "routing": "straight",
+                  "relation": "composicion",
+                  "sourceAnchor": {
+                    "x": 0.49458562677556817,
+                    "y": 0.02475914588341346
+                  },
+                  "midpoints": [
+                    {
+                      "x": 1089.017578125,
+                      "y": 390.11248779296875
+                    },
+                    {
+                      "x": 981.5,
+                      "y": 413.5
+                    },
+                    {
+                      "x": 984,
+                      "y": 413.5
+                    }
+                  ]
+                }
+              ],
+              "x": 814.0880126953125,
+              "y": 58.901123046875,
+              "width": 473.83203125,
+              "height": 590.5537719726562,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:11,25",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Agregado Interconsulta",
+              "entidad_raiz": "Límite de consistencia de Interconsulta: el estado y las alertas cambian juntos al consumir los eventos de Agenda y Episodio.",
+              "descripcion": "Límite de consistencia de Interconsulta: el estado y las alertas cambian juntos al consumir los eventos de Agenda y Episodio.",
+              "nodos": [
+                {
+                  "id": "dm-interconsulta",
+                  "nombre": "«Raíz» Interconsulta",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Raíz del agregado: solicitud del médico rural al especialista (interconsultaId, episodioId, cupoId, especialidad). Transiciona su estado al consumir CupoReservado y PacienteAtendido.",
+                  "fuente": "Caso RedSalud Andina:12",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 574,
+                  "y": 661,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-estado",
+                  "nombre": "EstadoInterconsulta",
+                  "tipo_elemento": "Enumeración",
+                  "descripcion": "Valores del ciclo de vida: SOLICITADA, AGENDADA, ATENDIDA, CERRADA; solo avanza en ese orden.",
+                  "fuente": "Caso RedSalud Andina:12",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 874,
+                  "y": 1621,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "dm-alerta",
+                  "nombre": "«Entidad» Alerta",
+                  "tipo_elemento": "Clase",
+                  "descripcion": "Aviso de pendiente de la interconsulta (alertaId, tipo, vencimiento, atendida) que se genera y se cierra según el estado.",
+                  "fuente": "Caso RedSalud Andina:12",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 879,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "dm-interconsulta",
+                  "destino": "dm-alerta",
+                  "descripcion": "1 ◆ 0..*",
+                  "relation": "composicion",
+                  "sourceAnchor": {
+                    "x": 0.008306052468039773,
+                    "y": 0.5018422053410456
+                  },
+                  "targetAnchor": {
+                    "x": 0.49391028664328834,
+                    "y": 0.0012183556189903845
+                  }
+                },
+                {
+                  "fuente": "dm-interconsulta",
+                  "destino": "dm-estado",
+                  "descripcion": "estado 1",
+                  "routing": "orthogonal",
+                  "relation": "asociacion",
+                  "sourceAnchor": {
+                    "x": 0.38293401544744315,
+                    "y": 0.9773313082181491
+                  },
+                  "midpoints": [
+                    {
+                      "x": 658.2454833984375,
+                      "y": 785.7195434570312
+                    },
+                    {
+                      "x": 468.1343078613281,
+                      "y": 785.7195434570312
+                    },
+                    {
+                      "x": 469.23321533203125,
+                      "y": 1667.0440673828125
+                    }
+                  ]
+                }
+              ],
+              "x": 60,
+              "y": 584,
+              "width": 1106,
+              "height": 1182,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:12",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "dm-receta",
+              "destino": "dm-episodio",
+              "descripcion": "ref. por episodioId",
+              "routing": "orthogonal",
+              "relation": "dependencia"
+            },
+            {
+              "fuente": "dm-interconsulta",
+              "destino": "dm-episodio",
+              "descripcion": "ref. por episodioId",
+              "routing": "orthogonal",
+              "relation": "dependencia",
+              "targetAnchor": {
+                "x": 0.18813643022017046,
+                "y": 0.022351191594050482
+              },
+              "midpoints": [
+                {
+                  "x": 915.3900146484375,
+                  "y": 714.2904663085938
+                }
+              ]
+            },
+            {
+              "fuente": "dm-interconsulta",
+              "destino": "dm-cupo",
+              "descripcion": "ref. por cupoId",
+              "routing": "orthogonal",
+              "relation": "dependencia",
+              "midpoints": [
+                {
+                  "x": 684,
+                  "y": 413.5
+                },
+                {
+                  "x": 1726,
+                  "y": 413.5
+                }
+              ],
+              "geometriaAuto": true
+            }
+          ],
+          "responsables": [],
+          "notas": "",
+          "transcript": ""
+        },
+        "createdAt": "2026-11-21T00:35:33.686Z"
+      },
+      {
+        "id": "d07f38c8-feff-4bf1-a45a-07ce87267905",
+        "name": "DDD 4 · Arquitectura hexagonal",
+        "kind": "graph",
+        "notation": "uml",
+        "graph": {
+          "nombre_proyecto": "DDD 4 · Arquitectura hexagonal",
+          "version": "1.0.0",
+          "notation": "uml",
+          "fecha_analisis": "2026-11-21",
+          "big_picture": {
+            "descripcion": "Diagrama de componentes UML de puertos y adaptadores del monolito modular: adaptadores de entrada, núcleo (casos de uso + dominio) con sus puertos, y adaptadores de salida. Las dependencias apuntan siempre hacia el dominio.",
+            "hotspots": [],
+            "nodos": [],
+            "aristas": []
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Adaptadores de entrada",
+              "entidad_raiz": "Lado conductor (driving) del hexágono: traducen peticiones del mundo exterior (app del centro rural, bus de eventos) a llamadas a los casos de uso. No contienen reglas de negocio.",
+              "descripcion": "Lado conductor (driving) del hexágono: traducen peticiones del mundo exterior (app del centro rural, bus de eventos) a llamadas a los casos de uso. No contienen reglas de negocio.",
+              "nodos": [
+                {
+                  "id": "hx-api",
+                  "nombre": "API REST",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Controladores HTTPS (TLS) que reciben las peticiones de la app del centro y de los especialistas, validan el token y llaman al caso de uso correspondiente.",
+                  "fuente": "Caso RedSalud Andina:28,29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "HTTPS"
+                  ],
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 132,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-sync",
+                  "nombre": "API sincronización",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Endpoint idempotente que recibe los lotes de la cola offline del centro (ULID + sello del centro), deduplica por identificador y entrega cada cambio, en orden por agregado, al caso de uso dueño.",
+                  "fuente": "Caso RedSalud Andina:23,24,42",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 466,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-consumer",
+                  "nombre": "Consumidor eventos",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Suscriptor de EventBridge que recibe eventos de dominio de otros módulos (CupoReservado, PacienteAtendido, LecturaClínica) y dispara las políticas de los módulos que reaccionan a ellos.",
+                  "fuente": "Caso RedSalud Andina:12,16",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "Amazon EventBridge"
+                  ],
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 800,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 60,
+              "width": 1032,
+              "height": 656,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:47,48",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Núcleo de aplicación",
+              "entidad_raiz": "Casos de uso y módulos de dominio del monolito modular, con los puertos que definen. No depende de ninguna tecnología: los adaptadores dependen de él (regla de dependencia).",
+              "descripcion": "Casos de uso y módulos de dominio del monolito modular, con los puertos que definen. No depende de ninguna tecnología: los adaptadores dependen de él (regla de dependencia).",
+              "nodos": [
+                {
+                  "id": "hx-usecases",
+                  "nombre": "Casos de uso",
+                  "tipo_elemento": "Interfaz Provista",
+                  "descripcion": "Puerto de entrada: operaciones que ofrece el núcleo (reservar cupo, admitir paciente, firmar receta, solicitar interconsulta, consultar historial). Autoriza por rol y atributo antes de tocar el dato.",
+                  "fuente": "Caso RedSalud Andina:8,29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1649,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-domain",
+                  "nombre": "Módulos de dominio",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Agregados, políticas y eventos de cada contexto (Agenda, Episodio, Receta, Interconsulta…), cada uno dueño de su esquema; aplica las reglas de conflicto offline (LWW en lo clínico, rechazo en cupos y recetas).",
+                  "fuente": "Caso RedSalud Andina:16,25,37",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1649,
+                  "y": 354,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-port-repo",
+                  "nombre": "RepositorioPort",
+                  "tipo_elemento": "Interfaz Requerida",
+                  "descripcion": "Puerto de salida para guardar y cargar agregados y adjuntos; el dominio lo define sin saber si detrás hay Aurora o S3.",
+                  "fuente": "Caso RedSalud Andina:9,10,40",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1315,
+                  "y": 571,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-port-historial",
+                  "nombre": "HistorialClinicoPort",
+                  "tipo_elemento": "Interfaz Requerida",
+                  "descripcion": "Puerto de salida que devuelve el historial en el modelo canónico del dominio con su marca de frescura; la ACL lo implementa.",
+                  "fuente": "Caso RedSalud Andina:19,41",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1649,
+                  "y": 571,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-port-eventos",
+                  "nombre": "PublicadorEventosPort",
+                  "tipo_elemento": "Interfaz Requerida",
+                  "descripcion": "Puerto de salida para publicar eventos de dominio (incluida LecturaClínica para auditoría); es la única vía entre módulos, sin acceso cruzado a tablas.",
+                  "fuente": "Caso RedSalud Andina:16,30",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1983,
+                  "y": 571,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "hx-domain",
+                  "destino": "hx-usecases",
+                  "descripcion": "implementa",
+                  "relation": "realizacion"
+                },
+                {
+                  "fuente": "hx-domain",
+                  "destino": "hx-port-repo",
+                  "descripcion": "requiere",
+                  "relation": "dependencia"
+                },
+                {
+                  "fuente": "hx-domain",
+                  "destino": "hx-port-historial",
+                  "descripcion": "requiere",
+                  "relation": "dependencia"
+                },
+                {
+                  "fuente": "hx-domain",
+                  "destino": "hx-port-eventos",
+                  "descripcion": "requiere",
+                  "relation": "dependencia"
+                }
+              ],
+              "x": 1243,
+              "y": 60,
+              "width": 1032,
+              "height": 656,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:37",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Adaptadores de salida",
+              "entidad_raiz": "Lado conducido (driven) del hexágono: implementan los puertos requeridos por el núcleo con tecnología concreta de AWS y con la capa anticorrupción hacia el legado.",
+              "descripcion": "Lado conducido (driven) del hexágono: implementan los puertos requeridos por el núcleo con tecnología concreta de AWS y con la capa anticorrupción hacia el legado.",
+              "nodos": [
+                {
+                  "id": "hx-aurora",
+                  "nombre": "Adaptador Aurora",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Implementa RepositorioPort sobre Aurora PostgreSQL Multi-AZ, con un esquema por módulo y cifrado KMS en reposo.",
+                  "fuente": "Caso RedSalud Andina:9,40",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "PostgreSQL"
+                  ],
+                  "icono": "si-postgresql",
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "5432",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2498,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-s3",
+                  "nombre": "Adaptador S3 adjuntos",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Implementa RepositorioPort para exámenes e imágenes en S3 cifrado con KMS, con una política de bucket que impide réplicas fuera de la región.",
+                  "fuente": "Caso RedSalud Andina:10,28",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "Amazon S3"
+                  ],
+                  "icono": "lu-Archive",
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "443",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 2832,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-acl",
+                  "nombre": "ACL Legado",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Capa anticorrupción: implementa HistorialClinicoPort leyendo del read model en caché o, si falta el dato, del legado (SOAP nocturno / BD de solo lectura) traducido al modelo canónico. Su detalle está en la vista «DDD 5 · ACL Legado».",
+                  "fuente": "Caso RedSalud Andina:19,41",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 3166,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "hx-eb",
+                  "nombre": "Publicador EventBridge",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Implementa PublicadorEventosPort sobre EventBridge; de ahí los eventos llegan a los módulos suscritos, a Auditoría (S3 Object Lock) y a Analítica (S3 + Athena).",
+                  "fuente": "Caso RedSalud Andina:12,30,34",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "Amazon EventBridge"
+                  ],
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "443",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 3500,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 2426,
+              "y": 60,
+              "width": 1366,
+              "height": 656,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:8,15",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "hx-api",
+              "destino": "hx-usecases",
+              "descripcion": "invoca [HTTPS]",
+              "routing": "orthogonal",
+              "relation": "dependencia",
+              "midpoints": [
+                {
+                  "x": 239.2866973876953,
+                  "y": 101.18680572509766
+                },
+                {
+                  "x": 1794.4727783203125,
+                  "y": 96.9847183227539
+                },
+                {
+                  "x": 1794.4727783203125,
+                  "y": 166.833984375
+                }
+              ]
+            },
+            {
+              "fuente": "hx-sync",
+              "destino": "hx-usecases",
+              "descripcion": "invoca idempotente",
+              "routing": "orthogonal",
+              "relation": "dependencia",
+              "targetAnchor": {
+                "x": 0.49791641235351564,
+                "y": 0.005555470784505208
+              },
+              "midpoints": [
+                {
+                  "x": 574.6666870117188,
+                  "y": 114
+                },
+                {
+                  "x": 1730.6666259765625,
+                  "y": 109.33333587646484
+                },
+                {
+                  "x": 1728.6666259765625,
+                  "y": 130.6666717529297
+                }
+              ]
+            },
+            {
+              "fuente": "hx-consumer",
+              "destino": "hx-usecases",
+              "descripcion": "invoca políticas",
+              "routing": "orthogonal",
+              "relation": "dependencia",
+              "midpoints": [
+                {
+                  "x": 1356.6666259765625,
+                  "y": 177.3333282470703
+                }
+              ]
+            },
+            {
+              "fuente": "hx-aurora",
+              "destino": "hx-port-repo",
+              "descripcion": "implementa [SQL]",
+              "routing": "orthogonal",
+              "relation": "realizacion",
+              "midpoints": [
+                {
+                  "x": 2608,
+                  "y": 256
+                },
+                {
+                  "x": 1367.3076923076924,
+                  "y": 256
+                },
+                {
+                  "x": 1367.3076923076924,
+                  "y": 563
+                }
+              ],
+              "geometriaAuto": true
+            },
+            {
+              "fuente": "hx-s3",
+              "destino": "hx-port-repo",
+              "descripcion": "implementa [S3 API]",
+              "routing": "orthogonal",
+              "relation": "realizacion",
+              "midpoints": [
+                {
+                  "x": 2942,
+                  "y": 300
+                },
+                {
+                  "x": 1400.6666259765625,
+                  "y": 302.6666564941406
+                },
+                {
+                  "x": 1402,
+                  "y": 501.3333435058594
+                }
+              ]
+            },
+            {
+              "fuente": "hx-acl",
+              "destino": "hx-port-historial",
+              "descripcion": "implementa",
+              "routing": "orthogonal",
+              "relation": "realizacion",
+              "targetAnchor": {
+                "x": 0.4854164123535156,
+                "y": 0.9833333333333333
+              },
+              "midpoints": [
+                {
+                  "x": 3278.666748046875,
+                  "y": 676
+                },
+                {
+                  "x": 1726,
+                  "y": 674.6666870117188
+                }
+              ]
+            },
+            {
+              "fuente": "hx-eb",
+              "destino": "hx-port-eventos",
+              "descripcion": "implementa",
+              "routing": "orthogonal",
+              "relation": "realizacion",
+              "midpoints": [
+                {
+                  "x": 3614.666748046875,
+                  "y": 604.6666870117188
+                }
+              ]
+            }
+          ],
+          "responsables": [],
+          "notas": "",
+          "transcript": ""
+        },
+        "createdAt": "2026-11-21T00:35:33.732Z"
+      },
+      {
+        "id": "3992fb86-9269-47db-bb1e-0ca0cc95dbef",
+        "name": "DDD 5 · ACL Legado",
+        "kind": "graph",
+        "notation": "uml",
+        "graph": {
+          "nombre_proyecto": "DDD 5 · ACL Legado",
+          "version": "1.0.0",
+          "notation": "uml",
+          "fecha_analisis": "2026-11-21",
+          "big_picture": {
+            "descripcion": "Diagrama de componentes UML de la Capa Anticorrupción entre el dominio clínico (downstream) y el legado clínico (upstream): puerto canónico, adaptador, traductor, clientes del legado, job nocturno y read model con TTL (ADR-02: CQRS + ACL).",
+            "hotspots": [],
+            "nodos": [],
+            "aristas": []
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Dominio clínico (D)",
+              "entidad_raiz": "Lado aguas abajo: el dominio solo conoce el puerto y el modelo canónico del historial; ningún tipo del legado cruza esta frontera.",
+              "descripcion": "Lado aguas abajo: el dominio solo conoce el puerto y el modelo canónico del historial; ningún tipo del legado cruza esta frontera.",
+              "nodos": [
+                {
+                  "id": "acl-query",
+                  "nombre": "Consulta historial",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Manejador de la consulta GET /historial/{id}: autoriza por rol y atributo (centro, especialidad, relación con el paciente), pide el historial al puerto y muestra la marca de frescura al especialista.",
+                  "fuente": "Caso RedSalud Andina:19,29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 507.42474365234375,
+                  "y": 116.64602661132812,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-port",
+                  "nombre": "HistorialClinicoPort",
+                  "tipo_elemento": "Interfaz Requerida",
+                  "descripcion": "Contrato en el lenguaje del dominio: obtener(pacienteId) → HistorialClínico canónico (id de paciente, episodios, documentos disponibles, marca de frescura).",
+                  "fuente": "Caso RedSalud Andina:19,41",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-pub",
+                  "nombre": "PublicadorEventosPort",
+                  "tipo_elemento": "Interfaz Requerida",
+                  "descripcion": "Puerto por el que cada lectura del historial emite LecturaClínica (usuario, fecha, recurso, motivo) hacia Auditoría, venga el dato de la caché o del legado.",
+                  "fuente": "Caso RedSalud Andina:30",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 535.7433471679688,
+                  "y": 319.6548767089844,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "acl-query",
+                  "destino": "acl-port",
+                  "descripcion": "usa",
+                  "relation": "dependencia"
+                },
+                {
+                  "fuente": "acl-query",
+                  "destino": "acl-pub",
+                  "descripcion": "emite LecturaClínica",
+                  "relation": "dependencia"
+                }
+              ],
+              "x": 60,
+              "y": 60.88494873046875,
+              "width": 1477,
+              "height": 402,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:19,37",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Capa anticorrupción",
+              "entidad_raiz": "Contexto Integración legado: concentra toda la traducción del modelo del legado al canónico y la vista de lectura con caducidad (CQRS). Si el legado cambia de proveedor, solo cambia este paquete.",
+              "descripcion": "Contexto Integración legado: concentra toda la traducción del modelo del legado al canónico y la vista de lectura con caducidad (CQRS). Si el legado cambia de proveedor, solo cambia este paquete.",
+              "nodos": [
+                {
+                  "id": "acl-adapter",
+                  "nombre": "AdaptadorHistorial",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Fachada de la ACL que implementa el puerto: primero lee el read model (p95 ≤ 2 s) y, solo si el dato no está, consulta la BD de solo lectura del legado (≤ 6 s) y refresca la caché.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 503,
+                  "y": 600,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-job",
+                  "nombre": "Job nocturno",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Proceso programado que, en la ventana en que el legado expone SOAP, rematerializa el read model y renueva su marca de frescura.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 132,
+                  "y": 780,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-translator",
+                  "nombre": "TraductorCanónico",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Único lugar donde vive el mapeo del modelo del legado (DTO SOAP y filas de BD) al modelo canónico del dominio; minimiza los datos que pasan a la vista de lectura.",
+                  "fuente": "Caso RedSalud Andina:19,37",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 1245,
+                  "y": 600,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-readmodel",
+                  "nombre": "Read model + TTL",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Vista de lectura propia en caché (ElastiCache/DynamoDB) con TTL explícito y fecha de caducidad visible; copia de lectura, nunca fuente de verdad.",
+                  "fuente": "Caso RedSalud Andina:13,19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": [
+                    "Amazon ElastiCache",
+                    "Amazon DynamoDB"
+                  ],
+                  "icono": "dv-dynamodb",
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 874,
+                  "y": 600,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-dbclient",
+                  "nombre": "Cliente BD lectura",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Cliente de la base de solo lectura del legado, usado solo cuando el dato no está en caché; nunca escribe.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 132,
+                  "y": 600,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-soapclient",
+                  "nombre": "Cliente SOAP",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Cliente del servicio SOAP nocturno del legado; descarga la información que alimenta la materialización masiva del read model.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 503,
+                  "y": 780,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "acl-adapter",
+                  "destino": "acl-readmodel",
+                  "descripcion": "1. lee (p95 ≤ 2 s)",
+                  "relation": "dependencia"
+                },
+                {
+                  "fuente": "acl-adapter",
+                  "destino": "acl-dbclient",
+                  "descripcion": "2. si no está (≤ 6 s)",
+                  "relation": "dependencia"
+                },
+                {
+                  "fuente": "acl-dbclient",
+                  "destino": "acl-translator",
+                  "descripcion": "modelo legado",
+                  "routing": "orthogonal",
+                  "midpoints": [
+                    {
+                      "x": 238.93804931640625,
+                      "y": 747.78759765625
+                    },
+                    {
+                      "x": 1356.63720703125,
+                      "y": 741.5928955078125
+                    }
+                  ],
+                  "labelOffset": {
+                    "x": -115.03628382780516,
+                    "y": -0.4596548362816293
+                  }
+                },
+                {
+                  "fuente": "acl-job",
+                  "destino": "acl-soapclient",
+                  "descripcion": "dispara cada noche"
+                },
+                {
+                  "fuente": "acl-soapclient",
+                  "destino": "acl-translator",
+                  "descripcion": "modelo legado"
+                },
+                {
+                  "fuente": "acl-translator",
+                  "destino": "acl-readmodel",
+                  "descripcion": "materializa con TTL"
+                }
+              ],
+              "x": 60,
+              "y": 523,
+              "width": 1477,
+              "height": 402,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:13,19,37,41",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Legado clínico (U)",
+              "entidad_raiz": "Lado aguas arriba: sistema existente que no se modifica y es la fuente de verdad del historial; solo ofrece SOAP nocturno y una base de solo lectura.",
+              "descripcion": "Lado aguas arriba: sistema existente que no se modifica y es la fuente de verdad del historial; solo ofrece SOAP nocturno y una base de solo lectura.",
+              "nodos": [
+                {
+                  "id": "acl-soap",
+                  "nombre": "SOAP nocturno",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Interfaz SOAP del legado disponible solo en horario nocturno; no se modifica.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "existente",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 132,
+                  "y": 1063,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "acl-legacydb",
+                  "nombre": "BD solo lectura",
+                  "tipo_elemento": "Componente",
+                  "descripcion": "Base de datos del legado expuesta en modo de solo lectura; fuente de verdad del historial clínico.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "existente",
+                  "tags_tecnologia": null,
+                  "metadata": [
+                    {
+                      "clave": "repo",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    },
+                    {
+                      "clave": "puerto",
+                      "valor": "pendiente",
+                      "tipo": "texto"
+                    }
+                  ],
+                  "x": 132,
+                  "y": 1243,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 986,
+              "width": 1477,
+              "height": 402,
+              "tipo_contenedor": "Paquete",
+              "fuente": "Caso RedSalud Andina:19",
+              "estado_comparativo": "existente"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "acl-adapter",
+              "destino": "acl-port",
+              "descripcion": "implementa",
+              "routing": "straight",
+              "relation": "realizacion",
+              "midpoints": [
+                {
+                  "x": 430.0885009765625,
+                  "y": 426.5486755371094
+                }
+              ]
+            },
+            {
+              "fuente": "acl-dbclient",
+              "destino": "acl-legacydb",
+              "descripcion": "consulta [SQL, lectura]",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 76.99114990234375,
+                  "y": 653.0973510742188
+                },
+                {
+                  "x": 75.22123718261719,
+                  "y": 1295.5751953125
+                }
+              ],
+              "labelOffset": {
+                "x": 0.8873930383671222,
+                "y": -20.35353830387794
+              }
+            },
+            {
+              "fuente": "acl-soapclient",
+              "destino": "acl-soap",
+              "descripcion": "consulta [SOAP]",
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 613.2743530273438,
+                  "y": 1115.92919921875
+                }
+              ]
+            }
+          ],
+          "responsables": [],
+          "notas": "",
+          "transcript": ""
+        },
+        "createdAt": "2026-11-21T00:35:33.733Z"
+      },
+      {
+        "id": "38d43e9d-ae82-44f0-af12-dad0235b1757",
+        "name": "DDD 2 · Context Map",
+        "kind": "graph",
+        "notation": "ddd",
+        "graph": {
+          "nombre_proyecto": "DDD 2 · Context Map",
+          "version": "1.0.0",
+          "notation": "ddd",
+          "fecha_analisis": "2026-11-21",
+          "big_picture": {
+            "descripcion": "Espacio de la solución: los 8 contextos delimitados de RedSalud Andina, sus relaciones aguas arriba/aguas abajo y los patrones de integración (ACL, OHS, PL, Conformista, Cliente/Proveedor).",
+            "hotspots": [],
+            "nodos": [
+              {
+                "id": "cm-ext-legado",
+                "nombre": "Legado clínico",
+                "tipo_elemento": "Sistema Externo",
+                "descripcion": "Sistema de historia clínica existente que no se modifica; fuente de verdad del historial que solo expone SOAP nocturno y una base de solo lectura.",
+                "fuente": "Caso RedSalud Andina:19",
+                "estado_comparativo": "existente",
+                "tags_tecnologia": null,
+                "x": 132,
+                "y": 60,
+                "width": 220,
+                "height": 104
+              },
+              {
+                "id": "cm-ext-farmacia",
+                "nombre": "Farmacia del centro",
+                "tipo_elemento": "Sistema Externo",
+                "descripcion": "Farmacia que recibe las recetas firmadas por una cola SQS; queda aguas abajo de Receta con consistencia eventual.",
+                "fuente": "Caso RedSalud Andina:11",
+                "estado_comparativo": "existente",
+                "tags_tecnologia": null,
+                "x": 428,
+                "y": 60,
+                "width": 220,
+                "height": 104
+              },
+              {
+                "id": "cm-pl",
+                "nombre": "PL Eventos de dominio",
+                "tipo_elemento": "Lenguaje Publicado (PL)",
+                "descripcion": "Esquema común de los eventos de dominio sobre EventBridge (CupoReservado, PacienteAtendido, RecetaFirmada, LecturaClínica); es la única vía de comunicación entre contextos, sin acceso cruzado a tablas.",
+                "fuente": "Caso RedSalud Andina:12,16",
+                "estado_comparativo": "nuevo",
+                "tags_tecnologia": [
+                  "Amazon EventBridge"
+                ],
+                "x": 132,
+                "y": 240,
+                "width": 220,
+                "height": 104
+              }
+            ],
+            "aristas": [
+              {
+                "fuente": "cm-ext-legado",
+                "destino": "cm-acl",
+                "descripcion": "U→D · ACL [SOAP, BD]",
+                "dashed": true,
+                "routing": "orthogonal",
+                "midpoints": [
+                  {
+                    "x": 95.87671661376953,
+                    "y": 109.27436065673828
+                  },
+                  {
+                    "x": 93.81484985351562,
+                    "y": 709.2770385742188
+                  }
+                ],
+                "labelOffset": {
+                  "x": 0.6809616088867188,
+                  "y": 8.646881103515625
+                }
+              },
+              {
+                "fuente": "cm-cupo",
+                "destino": "cm-pl",
+                "descripcion": "U · CupoReservado",
+                "dashed": true,
+                "routing": "orthogonal",
+                "midpoints": [
+                  {
+                    "x": 1864,
+                    "y": 292
+                  }
+                ],
+                "geometriaAuto": true
+              },
+              {
+                "fuente": "cm-episodio",
+                "destino": "cm-pl",
+                "descripcion": "U · PacienteAtendido, Lectura",
+                "dashed": true,
+                "routing": "orthogonal",
+                "targetAnchor": {
+                  "x": 0.9922235662286932,
+                  "y": 0.3268089294433594
+                },
+                "midpoints": [
+                  {
+                    "x": 1865.2635498046875,
+                    "y": 275.42010498046875
+                  }
+                ]
+              },
+              {
+                "fuente": "cm-historial",
+                "destino": "cm-pl",
+                "descripcion": "U · LecturaClínica",
+                "dashed": true,
+                "routing": "orthogonal",
+                "sourceAnchor": {
+                  "x": 0.4444344260475852,
+                  "y": 0.014450366680438701
+                },
+                "targetAnchor": {
+                  "x": 1,
+                  "y": 0.884190192589393
+                },
+                "midpoints": [
+                  {
+                    "x": 524.74462890625,
+                    "y": 334.01763916015625
+                  }
+                ]
+              },
+              {
+                "fuente": "cm-receta",
+                "destino": "cm-pl",
+                "descripcion": "U · RecetaFirmada",
+                "dashed": true,
+                "routing": "orthogonal",
+                "midpoints": [
+                  {
+                    "x": 242,
+                    "y": 189
+                  }
+                ],
+                "geometriaAuto": true
+              },
+              {
+                "fuente": "cm-pl",
+                "destino": "cm-interconsulta",
+                "descripcion": "D · C/S · avanza estado",
+                "dashed": true,
+                "routing": "orthogonal",
+                "midpoints": [
+                  {
+                    "x": 26.804243087768555,
+                    "y": 292.78033447265625
+                  },
+                  {
+                    "x": 23.71144676208496,
+                    "y": 994.8453369140625
+                  }
+                ],
+                "labelOffset": {
+                  "x": 128.82498224962956,
+                  "y": 273.1353702305148
+                }
+              },
+              {
+                "fuente": "cm-pl",
+                "destino": "cm-evento-acceso",
+                "descripcion": "D · CF · LecturaClínica",
+                "dashed": true,
+                "routing": "orthogonal",
+                "sourceAnchor": {
+                  "x": 1,
+                  "y": 0.6859339200533353
+                },
+                "midpoints": [
+                  {
+                    "x": 797.7314453125,
+                    "y": 314.7691345214844
+                  },
+                  {
+                    "x": 797.7314453125,
+                    "y": 995.4545288085938
+                  }
+                ]
+              },
+              {
+                "fuente": "cm-pl",
+                "destino": "cm-indicador",
+                "descripcion": "D · CF · seudonimizado",
+                "dashed": true,
+                "routing": "orthogonal",
+                "sourceAnchor": {
+                  "x": 0.00434202714399858,
+                  "y": 0.3365020751953125
+                },
+                "midpoints": [
+                  {
+                    "x": 11.363696098327637,
+                    "y": 274.9962158203125
+                  },
+                  {
+                    "x": 11.363696098327637,
+                    "y": 1219.3193359375
+                  },
+                  {
+                    "x": 1868.1915283203125,
+                    "y": 1222.7283935546875
+                  }
+                ]
+              },
+              {
+                "fuente": "cm-receta",
+                "destino": "cm-ext-farmacia",
+                "descripcion": "U→D · PL [SQS]",
+                "dashed": true,
+                "routing": "orthogonal",
+                "sourceAnchor": {
+                  "x": 0.4720486727627841,
+                  "y": 0.001053296602689303
+                },
+                "midpoints": [
+                  {
+                    "x": 1193.81982421875,
+                    "y": 107.21249389648438
+                  }
+                ]
+              }
+            ]
+          },
+          "agregados": [
+            {
+              "nombre_agregado": "Receta",
+              "entidad_raiz": "Soporte. Dueño de la receta firmada y de su envío a la farmacia; cliente del Episodio clínico, del que referencia el episodio por identificador.",
+              "descripcion": "Soporte. Dueño de la receta firmada y de su envío a la farmacia; cliente del Episodio clínico, del que referencia el episodio por identificador.",
+              "nodos": [
+                {
+                  "id": "cm-receta",
+                  "nombre": "Receta",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Prescripción firmada emitida dentro de un episodio, al que referencia por identificador; se envía a la farmacia de forma asíncrona.",
+                  "fuente": "Caso RedSalud Andina:11",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1091,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 871,
+              "y": 60,
+              "width": 660,
+              "height": 284,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:11",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Episodio clínico",
+              "entidad_raiz": "Núcleo. Dueño de la teleconsulta, la asistencia y los adjuntos; consume el historial del legado y la autorización, y publica la atención y cada lectura clínica.",
+              "descripcion": "Núcleo. Dueño de la teleconsulta, la asistencia y los adjuntos; consume el historial del legado y la autorización, y publica la atención y cada lectura clínica.",
+              "nodos": [
+                {
+                  "id": "cm-episodio",
+                  "nombre": "Episodio",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Teleconsulta de un paciente con su asistencia y adjuntos; publica PacienteAtendido al cerrarse y LecturaClínica cada vez que alguien lee la historia.",
+                  "fuente": "Caso RedSalud Andina:10,30",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1754,
+                  "y": 137,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 1682,
+              "y": 60,
+              "width": 364,
+              "height": 284,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:10",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Integración legado",
+              "entidad_raiz": "Soporte. Aguas abajo del legado clínico, al que aísla con una Capa Anticorrupción; aguas arriba del dominio, al que sirve el historial canónico como Servicio de Host Abierto.",
+              "descripcion": "Soporte. Aguas abajo del legado clínico, al que aísla con una Capa Anticorrupción; aguas arriba del dominio, al que sirve el historial canónico como Servicio de Host Abierto.",
+              "nodos": [
+                {
+                  "id": "cm-acl",
+                  "nombre": "ACL Legado",
+                  "tipo_elemento": "Capa Anticorrupción (ACL)",
+                  "descripcion": "Traduce el modelo del legado (SOAP nocturno y BD de solo lectura) al modelo canónico del dominio; es el único lugar donde vive esa traducción, para poder cambiar de proveedor sin tocar el dominio.",
+                  "fuente": "Caso RedSalud Andina:19,37",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 662,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "cm-historial",
+                  "nombre": "HistorialClínico",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Read model canónico del historial (id de paciente, episodios, documentos disponibles, marca de frescura); copia de lectura con caducidad visible, nunca fuente de verdad.",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 428,
+                  "y": 482,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "cm-ohs-historial",
+                  "nombre": "OHS Historial",
+                  "tipo_elemento": "Servicio de Host Abierto (OHS)",
+                  "descripcion": "Contrato público de consulta del historial canónico que usa el dominio: responde desde el read model (p95 ≤ 2 s) o, si no está en caché, desde el legado (≤ 6 s).",
+                  "fuente": "Caso RedSalud Andina:19",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 132,
+                  "y": 482,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "cm-acl",
+                  "destino": "cm-historial",
+                  "descripcion": "traduce a canónico"
+                },
+                {
+                  "fuente": "cm-historial",
+                  "destino": "cm-ohs-historial",
+                  "descripcion": "expone"
+                }
+              ],
+              "x": 60,
+              "y": 405,
+              "width": 660,
+              "height": 402,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:13,19",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Identidad y acceso",
+              "entidad_raiz": "Genérico. Dueño de pacientes, médicos rurales, especialistas, roles y atributos; aguas arriba de todos los contextos que autorizan acceso al dato clínico.",
+              "descripcion": "Genérico. Dueño de pacientes, médicos rurales, especialistas, roles y atributos; aguas arriba de todos los contextos que autorizan acceso al dato clínico.",
+              "nodos": [
+                {
+                  "id": "cm-usuario",
+                  "nombre": "Usuario",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Persona del sistema (paciente, médico rural o especialista) con su rol y atributos de acceso: centro, especialidad y relación con el paciente.",
+                  "fuente": "Caso RedSalud Andina:8,29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 943,
+                  "y": 482,
+                  "width": 220,
+                  "height": 104
+                },
+                {
+                  "id": "cm-ohs-identidad",
+                  "nombre": "OHS Autorización",
+                  "tipo_elemento": "Servicio de Host Abierto (OHS)",
+                  "descripcion": "Protocolo público con el que Identidad responde a los demás contextos si un usuario puede acceder a un dato, evaluando rol y atributo en el punto de acceso, no solo en la UI.",
+                  "fuente": "Caso RedSalud Andina:29",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1239,
+                  "y": 482,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [
+                {
+                  "fuente": "cm-usuario",
+                  "destino": "cm-ohs-identidad",
+                  "descripcion": "expone"
+                }
+              ],
+              "x": 871,
+              "y": 405,
+              "width": 660,
+              "height": 402,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:8,29",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Agenda",
+              "entidad_raiz": "Soporte. Dueño de cupos, reservas y disponibilidad de los 9 especialistas; publica sus hechos en el Lenguaje Publicado del dominio.",
+              "descripcion": "Soporte. Dueño de cupos, reservas y disponibilidad de los 9 especialistas; publica sus hechos en el Lenguaje Publicado del dominio.",
+              "nodos": [
+                {
+                  "id": "cm-cupo",
+                  "nombre": "Cupo",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Franja de atención de un especialista que se reserva con consistencia fuerte para impedir la doble reserva; al reservarse publica CupoReservado.",
+                  "fuente": "Caso RedSalud Andina:9",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1754,
+                  "y": 482,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 1682,
+              "y": 405,
+              "width": 364,
+              "height": 402,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:9",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Interconsulta",
+              "entidad_raiz": "Núcleo. Dueño del estado de la interconsulta y sus alertas; avanza de estado consumiendo los eventos de Agenda y Episodio clínico.",
+              "descripcion": "Núcleo. Dueño del estado de la interconsulta y sus alertas; avanza de estado consumiendo los eventos de Agenda y Episodio clínico.",
+              "nodos": [
+                {
+                  "id": "cm-interconsulta",
+                  "nombre": "Interconsulta",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Solicitud del médico rural al especialista que recorre solicitada → agendada → atendida → cerrada y genera alertas de pendientes.",
+                  "fuente": "Caso RedSalud Andina:12",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 280,
+                  "y": 945,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 60,
+              "y": 868,
+              "width": 660,
+              "height": 222,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:12",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Auditoría",
+              "entidad_raiz": "Genérico. Conformista con el Lenguaje Publicado: registra cada lectura clínica tal como llega, sin reinterpretarla, en un almacén inmutable.",
+              "descripcion": "Genérico. Conformista con el Lenguaje Publicado: registra cada lectura clínica tal como llega, sin reinterpretarla, en un almacén inmutable.",
+              "nodos": [
+                {
+                  "id": "cm-evento-acceso",
+                  "nombre": "EventoAcceso",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Registro inmutable de una lectura clínica (usuario, fecha, recurso, motivo) que sostiene el reporte reproducible de quién vio qué documento.",
+                  "fuente": "Caso RedSalud Andina:14,30",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1091,
+                  "y": 945,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 871,
+              "y": 868,
+              "width": 660,
+              "height": 222,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:14,30",
+              "estado_comparativo": "nuevo"
+            },
+            {
+              "nombre_agregado": "Analítica de uso",
+              "entidad_raiz": "Soporte. Conformista con el Lenguaje Publicado: proyecta indicadores a partir de los eventos, seudonimizados antes de salir del dominio clínico.",
+              "descripcion": "Soporte. Conformista con el Lenguaje Publicado: proyecta indicadores a partir de los eventos, seudonimizados antes de salir del dominio clínico.",
+              "nodos": [
+                {
+                  "id": "cm-indicador",
+                  "nombre": "IndicadorUso",
+                  "tipo_elemento": "Raíz de Agregado",
+                  "descripcion": "Indicador agregado por centro (teleconsultas, tiempo de espera, tasa de cierre) calculado fuera de la base transaccional.",
+                  "fuente": "Caso RedSalud Andina:15,34",
+                  "estado_comparativo": "nuevo",
+                  "tags_tecnologia": null,
+                  "x": 1754,
+                  "y": 945,
+                  "width": 220,
+                  "height": 104
+                }
+              ],
+              "aristas": [],
+              "x": 1682,
+              "y": 868,
+              "width": 364,
+              "height": 222,
+              "tipo_contenedor": "Contexto Delimitado",
+              "fuente": "Caso RedSalud Andina:15,34",
+              "estado_comparativo": "nuevo"
+            }
+          ],
+          "read_models": [],
+          "politicas_inter_agregados": [
+            {
+              "fuente": "cm-ohs-historial",
+              "destino": "cm-episodio",
+              "descripcion": "U→D · OHS",
+              "dashed": true,
+              "routing": "orthogonal",
+              "midpoints": [
+                {
+                  "x": 403.0945739746094,
+                  "y": 254.63583374023438
+                },
+                {
+                  "x": 1749.1612548828125,
+                  "y": 253.3861083984375
+                }
+              ]
+            },
+            {
+              "fuente": "cm-ohs-identidad",
+              "destino": "cm-episodio",
+              "descripcion": "U→D · OHS / CF",
+              "dashed": true,
+              "routing": "orthogonal",
+              "targetAnchor": {
+                "x": 0.9256220037286932,
+                "y": 0.8094476553109976
+              },
+              "midpoints": [
+                {
+                  "x": 1351.1434326171875,
+                  "y": 363.6330261230469
+                },
+                {
+                  "x": 2045.77294921875,
+                  "y": 361.8612365722656
+                }
+              ]
+            },
+            {
+              "fuente": "cm-episodio",
+              "destino": "cm-receta",
+              "descripcion": "U→D · C/S (ref. por id)",
+              "dashed": true,
+              "routing": "orthogonal"
+            },
+            {
+              "fuente": "cm-ohs-identidad",
+              "destino": "cm-historial",
+              "descripcion": "U→D · OHS / CF",
+              "dashed": true,
+              "routing": "orthogonal",
+              "targetAnchor": {
+                "x": 0.4977400346235795,
+                "y": 0.9816225492037259
+              },
+              "midpoints": [
+                {
+                  "x": 1349,
+                  "y": 474
+                },
+                {
+                  "x": 1346.597900390625,
+                  "y": 694.3165893554688
+                },
+                {
+                  "x": 537.5028076171875,
+                  "y": 693.1802368164062
+                }
+              ]
+            }
+          ],
+          "responsables": [],
+          "notas": "",
+          "transcript": ""
+        },
+        "createdAt": "2026-11-21T00:43:15.195Z"
+      }
+    ],
+    "activeViewId": "design",
+    "injectedViewIds": [],
+    "openViewIds": [
+      "ba5bbe1f-b11f-4922-8164-f328fd7c207b",
+      "c4683725-b111-43c2-867a-9549648a4478",
+      "32a3c136-4bf4-44ce-bf8e-ae124afc1006",
+      "996f6ceb-ed0f-468f-ac15-49764a03ffbb",
+      "835eb5d7-c755-4e6f-8421-9c7593fd6e4f",
+      "bd5913b4-4ece-4327-86d6-10e16b026e71",
+      "cca2fb33-3798-43da-8b9f-17e60283d060"
+    ]
+  }
+}
