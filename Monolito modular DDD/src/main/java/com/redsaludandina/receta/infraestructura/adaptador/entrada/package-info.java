@@ -1,0 +1,4 @@
+/**
+ * Adaptadores de entrada (driving) que traducen peticiones externas a casos de uso.
+ */
+package com.redsaludandina.receta.infraestructura.adaptador.entrada;

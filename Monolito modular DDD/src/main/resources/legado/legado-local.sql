@@ -1,0 +1,27 @@
+-- Legado SIMULADO para el perfil local y las pruebas (H2). El caso no describe el esquema real
+-- del legado: estas tablas son un modelo de referencia, con el estilo típico de un sistema viejo
+-- (códigos, fechas en texto yyyyMMdd). Se ejecuta en cada conexión, por eso es idempotente.
+
+CREATE TABLE IF NOT EXISTS HC_PACIENTE (
+    COD_PACIENTE VARCHAR(100) PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS HC_ATENCION (
+    NRO_ATENCION VARCHAR(30)  PRIMARY KEY,
+    COD_PACIENTE VARCHAR(100) NOT NULL,
+    FEC_ATENCION CHAR(8)      NOT NULL,
+    GLOSA        VARCHAR(500)
+);
+
+CREATE TABLE IF NOT EXISTS HC_DOCUMENTO (
+    COD_DOCUMENTO VARCHAR(30)  PRIMARY KEY,
+    COD_PACIENTE  VARCHAR(100) NOT NULL,
+    TIP_DOCUMENTO VARCHAR(10)  NOT NULL,
+    FEC_DOCUMENTO CHAR(8)      NOT NULL
+);
+
+MERGE INTO HC_PACIENTE KEY (COD_PACIENTE) VALUES ('pac-1');
+MERGE INTO HC_ATENCION KEY (NRO_ATENCION) VALUES ('AT-1001', 'pac-1', '20240301', 'Control de hipertensión');
+MERGE INTO HC_ATENCION KEY (NRO_ATENCION) VALUES ('AT-1002', 'pac-1', '20250709', '');
+MERGE INTO HC_DOCUMENTO KEY (COD_DOCUMENTO) VALUES ('DOC-77', 'pac-1', 'LAB', '20250709');
+MERGE INTO HC_DOCUMENTO KEY (COD_DOCUMENTO) VALUES ('DOC-78', 'pac-1', 'RX', '20240301');
