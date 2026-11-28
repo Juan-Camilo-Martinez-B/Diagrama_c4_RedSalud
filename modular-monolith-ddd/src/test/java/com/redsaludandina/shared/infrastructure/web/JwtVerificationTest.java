@@ -37,6 +37,7 @@ class JwtVerificationTest {
     void aSignedTokenVerifiesAndExposesTheSubject() throws Exception {
         RSAKey key = key();
         String token = sign(key, "med-1", Instant.now().plusSeconds(300));
+        System.out.println("JWT: " + token);
 
         Jwt jwt = decoder(key).decode(token);
 
