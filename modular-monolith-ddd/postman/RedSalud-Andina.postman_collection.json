@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "5d1b6a0e-2f4c-4f4e-9a51-7e2b9c1d0a77",
     "name": "RedSalud Andina - Modular monolith (CQRS)",
-    "description": "Recorrido del caso: 7 contextos, comandos (204) y consultas (GET) separados, outbox/inbox, sincronización offline idempotente, ACL del legado y evidencia de accesos. Ejecutar en orden.",
+    "description": "Recorrido del caso: 7 contextos, comandos (204) y consultas (GET) separados, outbox/inbox, sincronización offline idempotente (last-writer-wins, cupo y firma rechazados en el borde), ACL del legado con frescura visible y evidencia de lecturas, denegaciones y valores descartados. Ejecutar en orden con el entorno local. El relevo del outbox corre cada 2 s; las consultas que dependen de eventos esperan relayWaitMs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -37,7 +37,7 @@
                   "  return time + rnd;",
                   "}",
                   "['slotId', 'bookingId', 'otherBookingId', 'referralId', 'episodeId', 'attachmentId', 'syncEpisodeId',",
-                  " 'syncSlotId', 'syncBookingId', 'prescriptionId'].forEach((name) => pm.collectionVariables.set(name, ulid()));",
+                  " 'syncAttachmentId', 'syncSlotId', 'syncBookingId', 'syncPrescriptionId', 'prescriptionId'].forEach((name) => pm.collectionVariables.set(name, ulid()));",
                   "pm.collectionVariables.set('syncKey', 'sync-' + ulid());",
                   "const now = Date.now();",
                   "pm.collectionVariables.set('slotStart', new Date(now + 2 * 24 * 3600 * 1000).toISOString());",
@@ -109,6 +109,7 @@
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const mine = pm.response.json().find((r) => r.referralId === pm.collectionVariables.get('referralId'));",
+                  "pm.test('Quedó solicitada', () => pm.expect(mine.status).to.eql('REQUESTED'));",
                   "pm.test('La interconsulta espera agenda', () => pm.expect(mine.alerts).to.eql(['PENDING_SCHEDULING']));"
                 ]
               }
@@ -236,6 +237,28 @@
           }
         },
         {
+          "name": "Booked slot leaves the available list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().map((s) => s.slotId);",
+                  "pm.test('Un cupo reservado ya no está libre', () => pm.expect(ids).to.not.include(pm.collectionVariables.get('slotId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/scheduling/slots?specialistId={{specialist}}",
+            "description": "La consulta solo devuelve cupos con bookingId nulo y inicio futuro."
+          }
+        },
+        {
           "name": "Double booking is rejected",
           "event": [
             {
@@ -273,7 +296,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "setTimeout(() => {}, Number(pm.environment.get('relayWaitMs')));"
+                  "const waitMs = Number(pm.environment.get('relayWaitMs') || 5000);",
+                  "await new Promise((resolve) => setTimeout(resolve, waitMs));"
                 ]
               }
             },
@@ -392,7 +416,10 @@
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
                   "pm.collectionVariables.set('storageKey', body.storageKey);",
-                  "pm.test('El servidor asigna la clave del adjunto', () => pm.expect(body.storageKey).to.include('/attachments/'));"
+                  "const expectedKey = 'episodes/' + pm.collectionVariables.get('episodeId') + '/attachments/' + pm.collectionVariables.get('attachmentId');",
+                  "pm.test('El servidor asigna la clave del adjunto', () => pm.expect(body.storageKey).to.eql(expectedKey));",
+                  "pm.test('URL prefirmada de subida', () => pm.expect(body.url).to.include('X-Amz-Signature'));",
+                  "pm.test('La firma caduca', () => pm.expect(body.expiresAt).to.be.a('string'));"
                 ]
               }
             }
@@ -488,7 +515,33 @@
               }
             ],
             "url": "{{baseUrl}}/episodes/{{episodeId}}?reason=Curiosidad",
-            "description": ""
+            "description": "Usuario inexistente: la política niega por defecto y deja AccessDenied en el outbox."
+          }
+        },
+        {
+          "name": "Get episode as administrator: 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Un administrativo no lee clínica', () => pm.response.to.have.status(403));",
+                  "pm.test('El motivo nombra el rol', () => pm.expect(pm.response.json().detail).to.include('administrativo'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{administrator}}"
+              }
+            ],
+            "url": "{{baseUrl}}/episodes/{{episodeId}}?reason=Curiosidad",
+            "description": "El rol ADMINISTRATOR nunca accede a datos clínicos. La denegación queda auditada."
           }
         },
         {
@@ -545,7 +598,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "setTimeout(() => {}, Number(pm.environment.get('relayWaitMs')));"
+                  "const waitMs = Number(pm.environment.get('relayWaitMs') || 5000);",
+                  "await new Promise((resolve) => setTimeout(resolve, waitMs));"
                 ]
               }
             },
@@ -556,7 +610,8 @@
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const mine = pm.response.json().find((r) => r.referralId === pm.collectionVariables.get('referralId'));",
-                  "pm.test('El evento PatientAttended marcó la interconsulta atendida', () => pm.expect(mine.status).to.eql('ATTENDED'));"
+                  "pm.test('El evento PatientAttended marcó la interconsulta atendida', () => pm.expect(mine.status).to.eql('ATTENDED'));",
+                  "pm.test('Ahora espera el cierre', () => pm.expect(mine.alerts).to.eql(['PENDING_CLOSURE']));"
                 ]
               }
             }
@@ -626,9 +681,12 @@
                   "pm.test('Lote procesado: 201', () => pm.response.to.have.status(201));",
                   "const items = pm.response.json().items;",
                   "const byId = Object.fromEntries(items.map((i) => [i.changeId, i]));",
-                  "pm.test('Apertura, nota y cierre aplicados', () => pm.expect([byId.c1.status, byId.c2.status, byId.c5.status]).to.eql(['APPLIED', 'APPLIED', 'APPLIED']));",
-                  "pm.test('El valor más antiguo pierde por last-writer-wins pero se aplica (queda auditado)', () => pm.expect(byId.c4.status).to.eql('APPLIED'));",
-                  "pm.test('La reserva de cupo se rechaza en el borde', () => pm.expect([byId.c6.status, byId.c6.code]).to.eql(['REJECTED', 'REQUIRES_SERVER']));",
+                  "pm.test('Apertura, nota, adjunto y cierre aplicados', () => pm.expect([byId.c1.status, byId.c2.status, byId.c7.status, byId.c5.status]).to.eql(['APPLIED', 'APPLIED', 'APPLIED', 'APPLIED']));",
+                  "pm.test('El valor más antiguo pierde por last-writer-wins pero el cambio se acepta', () => pm.expect(byId.c4.status).to.eql('APPLIED'));",
+                  "pm.test('Cupo y firma no se resuelven en el borde', () => {",
+                  "  pm.expect([byId.c6.status, byId.c6.code]).to.eql(['REJECTED', 'REQUIRES_SERVER']);",
+                  "  pm.expect([byId.c8.status, byId.c8.code]).to.eql(['REJECTED', 'REQUIRES_SERVER']);",
+                  "});",
                   "pm.collectionVariables.set('syncResult', JSON.stringify(items));"
                 ]
               }
@@ -650,7 +708,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"centerId\": \"{{centerId}}\",\n  \"items\": [\n    {\n      \"changeId\": \"c1\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 1,\n      \"type\": \"OPEN_EPISODE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c2\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 2,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"REASON\",\n      \"text\": \"Fiebre de 3 días\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c3\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 3,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 38,5\",\n      \"stampedAt\": \"{{stampLate}}\"\n    },\n    {\n      \"changeId\": \"c4\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 4,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 37,9\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c5\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 5,\n      \"type\": \"CLOSE_TELECONSULTATION\",\n      \"episodeId\": \"{{syncEpisodeId}}\"\n    },\n    {\n      \"changeId\": \"c6\",\n      \"aggregateId\": \"{{syncSlotId}}\",\n      \"sequence\": 1,\n      \"type\": \"BOOK_SLOT\",\n      \"slotId\": \"{{syncSlotId}}\",\n      \"bookingId\": \"{{syncBookingId}}\",\n      \"patientId\": \"{{patientId}}\"\n    }\n  ]\n}"
+              "raw": "{\n  \"centerId\": \"{{centerId}}\",\n  \"items\": [\n    {\n      \"changeId\": \"c1\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 1,\n      \"type\": \"OPEN_EPISODE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c2\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 2,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"REASON\",\n      \"text\": \"Fiebre de 3 días\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c3\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 3,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 38,5\",\n      \"stampedAt\": \"{{stampLate}}\"\n    },\n    {\n      \"changeId\": \"c4\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 4,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 37,9\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c5\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 5,\n      \"type\": \"CLOSE_TELECONSULTATION\",\n      \"episodeId\": \"{{syncEpisodeId}}\"\n    },\n    {\n      \"changeId\": \"c6\",\n      \"aggregateId\": \"{{syncSlotId}}\",\n      \"sequence\": 1,\n      \"type\": \"BOOK_SLOT\",\n      \"slotId\": \"{{syncSlotId}}\",\n      \"bookingId\": \"{{syncBookingId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c7\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 6,\n      \"type\": \"ATTACH_FILE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"attachmentId\": \"{{syncAttachmentId}}\",\n      \"attachmentType\": \"EXAM\",\n      \"storageKey\": \"episodes/{{syncEpisodeId}}/attachments/{{syncAttachmentId}}\",\n      \"sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n    },\n    {\n      \"changeId\": \"c8\",\n      \"aggregateId\": \"{{syncPrescriptionId}}\",\n      \"sequence\": 1,\n      \"type\": \"SIGN_PRESCRIPTION\",\n      \"prescriptionId\": \"{{syncPrescriptionId}}\"\n    }\n  ]\n}"
             }
           }
         },
@@ -685,7 +743,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"centerId\": \"{{centerId}}\",\n  \"items\": [\n    {\n      \"changeId\": \"c1\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 1,\n      \"type\": \"OPEN_EPISODE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c2\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 2,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"REASON\",\n      \"text\": \"Fiebre de 3 días\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c3\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 3,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 38,5\",\n      \"stampedAt\": \"{{stampLate}}\"\n    },\n    {\n      \"changeId\": \"c4\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 4,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 37,9\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c5\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 5,\n      \"type\": \"CLOSE_TELECONSULTATION\",\n      \"episodeId\": \"{{syncEpisodeId}}\"\n    },\n    {\n      \"changeId\": \"c6\",\n      \"aggregateId\": \"{{syncSlotId}}\",\n      \"sequence\": 1,\n      \"type\": \"BOOK_SLOT\",\n      \"slotId\": \"{{syncSlotId}}\",\n      \"bookingId\": \"{{syncBookingId}}\",\n      \"patientId\": \"{{patientId}}\"\n    }\n  ]\n}"
+              "raw": "{\n  \"centerId\": \"{{centerId}}\",\n  \"items\": [\n    {\n      \"changeId\": \"c1\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 1,\n      \"type\": \"OPEN_EPISODE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c2\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 2,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"REASON\",\n      \"text\": \"Fiebre de 3 días\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c3\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 3,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 38,5\",\n      \"stampedAt\": \"{{stampLate}}\"\n    },\n    {\n      \"changeId\": \"c4\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 4,\n      \"type\": \"RECORD_CARE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"field\": \"FINDINGS\",\n      \"text\": \"Temperatura 37,9\",\n      \"stampedAt\": \"{{stampEarly}}\"\n    },\n    {\n      \"changeId\": \"c5\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 5,\n      \"type\": \"CLOSE_TELECONSULTATION\",\n      \"episodeId\": \"{{syncEpisodeId}}\"\n    },\n    {\n      \"changeId\": \"c6\",\n      \"aggregateId\": \"{{syncSlotId}}\",\n      \"sequence\": 1,\n      \"type\": \"BOOK_SLOT\",\n      \"slotId\": \"{{syncSlotId}}\",\n      \"bookingId\": \"{{syncBookingId}}\",\n      \"patientId\": \"{{patientId}}\"\n    },\n    {\n      \"changeId\": \"c7\",\n      \"aggregateId\": \"{{syncEpisodeId}}\",\n      \"sequence\": 6,\n      \"type\": \"ATTACH_FILE\",\n      \"episodeId\": \"{{syncEpisodeId}}\",\n      \"attachmentId\": \"{{syncAttachmentId}}\",\n      \"attachmentType\": \"EXAM\",\n      \"storageKey\": \"episodes/{{syncEpisodeId}}/attachments/{{syncAttachmentId}}\",\n      \"sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n    },\n    {\n      \"changeId\": \"c8\",\n      \"aggregateId\": \"{{syncPrescriptionId}}\",\n      \"sequence\": 1,\n      \"type\": \"SIGN_PRESCRIPTION\",\n      \"prescriptionId\": \"{{syncPrescriptionId}}\"\n    }\n  ]\n}"
             }
           }
         },
@@ -734,6 +792,8 @@
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
                   "pm.test('Gana el valor con el sello más reciente', () => pm.expect(body.care.FINDINGS).to.eql('Temperatura 38,5'));",
+                  "pm.test('El motivo también quedó', () => pm.expect(body.care.REASON).to.eql('Fiebre de 3 días'));",
+                  "pm.test('El adjunto offline quedó en el episodio', () => pm.expect(body.attachments.map((a) => a.id)).to.include(pm.collectionVariables.get('syncAttachmentId')));",
                   "pm.test('Quedó atendido', () => pm.expect(body.status).to.eql('ATTENDED'));"
                 ]
               }
@@ -853,6 +913,40 @@
           }
         },
         {
+          "name": "Sign by another user is rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Código SIGNER_NOT_PRESCRIBER', () => pm.expect(pm.response.json().code).to.eql('SIGNER_NOT_PRESCRIBER'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{specialist}}"
+              }
+            ],
+            "url": "{{baseUrl}}/prescriptions/{{prescriptionId}}/signature",
+            "description": "Solo el prescriptor (X-User-Id de la creación) puede firmar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signatureValue\": \"firma-esp-1\"\n}"
+            }
+          }
+        },
+        {
           "name": "Sign prescription",
           "event": [
             {
@@ -923,7 +1017,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "setTimeout(() => {}, Number(pm.environment.get('relayWaitMs')));"
+                  "const waitMs = Number(pm.environment.get('relayWaitMs') || 5000);",
+                  "await new Promise((resolve) => setTimeout(resolve, waitMs));"
                 ]
               }
             },
@@ -935,7 +1030,9 @@
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
                   "pm.test('Firmada', () => pm.expect(body.status).to.eql('SIGNED'));",
-                  "pm.test('PrescriptionSigned la envió a la farmacia', () => pm.expect(body.sentToPharmacyAt !== null).to.eql(true));"
+                  "pm.test('Un medicamento', () => pm.expect(body.medicationCount).to.eql(1));",
+                  "pm.test('Tiene fecha de firma', () => pm.expect(body.signedAt).to.be.a('string'));",
+                  "pm.test('PrescriptionSigned la envió a la farmacia', () => pm.expect(body.sentToPharmacyAt).to.be.a('string'));"
                 ]
               }
             }
@@ -964,8 +1061,16 @@
                   "const body = pm.response.json();",
                   "pm.test('Episodios traducidos al modelo canónico', () => pm.expect(body.episodes).to.have.lengthOf(2));",
                   "pm.test('Glosa vacía completada por el traductor', () => pm.expect(body.episodes.map((e) => e.description)).to.include('(sin glosa)'));",
-                  "pm.test('Tipo de documento traducido', () => pm.expect(body.documents.map((d) => d.type)).to.include('Laboratorio'));",
-                  "pm.test('Copia vigente', () => pm.expect(body.fresh).to.eql(true));"
+                  "pm.test('Glosa con texto se conserva', () => pm.expect(body.episodes.map((e) => e.description)).to.include('Control de hipertensión'));",
+                  "pm.test('Tipos de documento traducidos', () => {",
+                  "  const types = body.documents.map((d) => d.type);",
+                  "  pm.expect(types).to.include('Laboratorio');",
+                  "  pm.expect(types).to.include('Radiografía');",
+                  "});",
+                  "pm.test('La copia salió del legado en línea', () => pm.expect(body.source).to.eql('DIRECT_LEGACY'));",
+                  "pm.test('Copia vigente', () => pm.expect(body.fresh).to.eql(true));",
+                  "pm.test('Encabezado de frescura', () => pm.expect(pm.response.headers.get('X-Data-Freshness')).to.include('fresh=true'));",
+                  "pm.collectionVariables.set('historyObtainedAt', body.obtainedAt);"
                 ]
               }
             }
@@ -991,7 +1096,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Sigue vigente (TTL)', () => pm.expect(pm.response.json().fresh).to.eql(true));"
+                  "const body = pm.response.json();",
+                  "pm.test('Sigue vigente (TTL 24 h)', () => pm.expect(body.fresh).to.eql(true));",
+                  "pm.test('No volvió a consultar el legado: misma marca de obtención', () => pm.expect(body.obtainedAt).to.eql(pm.collectionVariables.get('historyObtainedAt')));",
+                  "pm.test('El origen de la copia no cambia', () => pm.expect(body.source).to.eql('DIRECT_LEGACY'));"
                 ]
               }
             }
@@ -1046,7 +1154,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "setTimeout(() => {}, Number(pm.environment.get('relayWaitMs')));"
+                  "const waitMs = Number(pm.environment.get('relayWaitMs') || 5000);",
+                  "await new Promise((resolve) => setTimeout(resolve, waitMs));"
                 ]
               }
             },
@@ -1056,9 +1165,24 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
-                  "const users = pm.response.json().map((l) => l.userId);",
-                  "pm.test('La lectura del médico rural quedó auditada', () => pm.expect(users).to.include(pm.environment.get('ruralDoctor')));",
-                  "pm.test('El acceso negado no cuenta como lectura', () => pm.expect(users.includes(pm.environment.get('userWithoutProfile'))).to.eql(false));"
+                  "const lines = pm.response.json();",
+                  "const readers = lines.filter((l) => l.type === 'CLINICAL_READ').map((l) => l.userId);",
+                  "const denied = lines.filter((l) => l.type === 'ACCESS_DENIED');",
+                  "pm.test('La lectura del médico rural quedó como CLINICAL_READ', () => pm.expect(readers).to.include(pm.environment.get('ruralDoctor')));",
+                  "pm.test('El usuario sin perfil quedó como ACCESS_DENIED', () => {",
+                  "  const line = denied.find((l) => l.userId === pm.environment.get('userWithoutProfile'));",
+                  "  pm.expect(line).to.be.an('object');",
+                  "  pm.expect(line.reason).to.include('perfil');",
+                  "});",
+                  "pm.test('El administrativo quedó como ACCESS_DENIED', () => {",
+                  "  const line = denied.find((l) => l.userId === pm.environment.get('administrator'));",
+                  "  pm.expect(line).to.be.an('object');",
+                  "  pm.expect(line.reason).to.include('administrativo');",
+                  "});",
+                  "pm.test('Una denegación no cuenta como lectura clínica', () => {",
+                  "  pm.expect(readers).to.not.include(pm.environment.get('userWithoutProfile'));",
+                  "  pm.expect(readers).to.not.include(pm.environment.get('administrator'));",
+                  "});"
                 ]
               }
             }
@@ -1079,7 +1203,14 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Dos lecturas auditadas como mínimo', () => pm.expect(pm.response.json().length).to.be.at.least(2));"
+                  "const lines = pm.response.json();",
+                  "const readers = lines.filter((l) => l.type === 'CLINICAL_READ').map((l) => l.userId);",
+                  "const denied = lines.filter((l) => l.type === 'ACCESS_DENIED').map((l) => l.userId);",
+                  "pm.test('Médico rural y especialista leyeron el historial', () => {",
+                  "  pm.expect(readers).to.include(pm.environment.get('ruralDoctor'));",
+                  "  pm.expect(readers).to.include(pm.environment.get('specialist'));",
+                  "});",
+                  "pm.test('El usuario sin perfil quedó denegado', () => pm.expect(denied).to.include(pm.environment.get('userWithoutProfile')));"
                 ]
               }
             }
@@ -1089,6 +1220,62 @@
             "header": [],
             "url": "{{baseUrl}}/insights/access-log?resource=history/{{patientId}}",
             "description": ""
+          }
+        },
+        {
+          "name": "Discarded clinical value of the synced episode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const lines = pm.response.json();",
+                  "const discarded = lines.filter((l) => l.type === 'CLINICAL_VALUE_DISCARDED');",
+                  "pm.test('Last-writer-wins guardó los dos valores', () => {",
+                  "  pm.expect(discarded.length).to.be.at.least(1);",
+                  "  pm.expect(discarded[0].userId).to.eql('system:sync');",
+                  "  pm.expect(discarded[0].detail).to.include('FINDINGS');",
+                  "  pm.expect(discarded[0].detail).to.include('Temperatura 38,5');",
+                  "  pm.expect(discarded[0].detail).to.include('Temperatura 37,9');",
+                  "});",
+                  "const readers = lines.filter((l) => l.type === 'CLINICAL_READ').map((l) => l.userId);",
+                  "pm.test('La lectura del episodio sincronizado quedó auditada', () => pm.expect(readers).to.include(pm.environment.get('ruralDoctor')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/insights/access-log?resource=episode/{{syncEpisodeId}}",
+            "description": "ClinicalValueDiscarded viaja por el outbox del episodio. El usuario del registro es system:sync."
+          }
+        },
+        {
+          "name": "Who downloaded the attachment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const readers = pm.response.json().filter((l) => l.type === 'CLINICAL_READ');",
+                  "pm.test('La descarga del especialista quedó en su propio recurso', () => {",
+                  "  pm.expect(readers.map((l) => l.userId)).to.include(pm.environment.get('specialist'));",
+                  "  pm.expect(readers.map((l) => l.reason).join(' ')).to.include('examen');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/insights/access-log?resource=episode/{{episodeId}}/attachment/{{attachmentId}}",
+            "description": "La lectura de un adjunto se audita como episode/{id}/attachment/{id}, no como el episodio."
           }
         },
         {
@@ -1102,8 +1289,17 @@
                   "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
                   "pm.test('Cuenta reservas', () => pm.expect(body.bookings).to.be.at.least(1));",
-                  "pm.test('Cuenta teleconsultas', () => pm.expect(body.teleconsultations).to.be.at.least(2));",
-                  "pm.test('Cuenta interconsultas cerradas', () => pm.expect(body.referralsClosed).to.be.at.least(1));"
+                  "pm.test('Cuenta teleconsultas en línea y offline', () => pm.expect(body.teleconsultations).to.be.at.least(2));",
+                  "pm.test('Cuenta interconsultas solicitadas y cerradas', () => {",
+                  "  pm.expect(body.referralsRequested).to.be.at.least(1);",
+                  "  pm.expect(body.referralsClosed).to.be.at.least(1);",
+                  "});",
+                  "pm.test('La tasa de cierre está entre 0 y 1', () => {",
+                  "  pm.expect(body.closureRate).to.be.a('number');",
+                  "  pm.expect(body.closureRate).to.be.at.least(0);",
+                  "  pm.expect(body.closureRate).to.be.at.most(1);",
+                  "});",
+                  "pm.test('Hay espera media porque hubo reservas', () => pm.expect(body.averageWaitMinutes).to.be.a('number').and.to.be.at.least(0));"
                 ]
               }
             }
