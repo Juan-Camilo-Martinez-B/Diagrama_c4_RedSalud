@@ -15,6 +15,6 @@ public final class WhoAccessedHandler implements QueryHandler<WhoAccessedQuery, 
 
     @Override
     public List<AccessLogLine> handle(WhoAccessedQuery query) {
-        return accessLog.clinicalReadsOf(Require.text(query.resource(), "resource"));
+        return accessLog.entriesOf(Require.text(query.resource(), "resource"));
     }
 }

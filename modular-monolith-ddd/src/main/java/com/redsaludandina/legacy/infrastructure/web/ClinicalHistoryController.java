@@ -8,8 +8,10 @@ import com.redsaludandina.legacy.application.query.GetClinicalHistoryQuery;
 import com.redsaludandina.shared.application.cqrs.CommandHandler;
 import com.redsaludandina.shared.application.cqrs.QueryHandler;
 import com.redsaludandina.shared.infrastructure.web.AuthenticatedUser;
+import com.redsaludandina.shared.infrastructure.web.Headers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,11 +38,16 @@ public class ClinicalHistoryController {
     }
 
     @GetMapping("/legacy/history/{patientId}")
-    ClinicalHistoryView history(@PathVariable String patientId, @RequestParam String centerId,
-                                @RequestParam String reason, @AuthenticatedUser String userId) {
+    ResponseEntity<ClinicalHistoryView> history(@PathVariable String patientId, @RequestParam String centerId,
+                                                @RequestParam String reason, @AuthenticatedUser String userId) {
         recordRead.handle(new RecordHistoryReadCommand(userId, patientId, centerId, reason));
         refresh.handle(new RefreshClinicalHistoryCommand(patientId));
-        return getHistory.handle(new GetClinicalHistoryQuery(patientId));
+        ClinicalHistoryView view = getHistory.handle(new GetClinicalHistoryQuery(patientId));
+        return ResponseEntity.ok().header(Headers.DATA_FRESHNESS, freshness(view)).body(view);
+    }
+
+    private static String freshness(ClinicalHistoryView view) {
+        return "fresh=" + view.fresh() + "; obtained-at=" + view.obtainedAt() + "; expires-at=" + view.expiresAt();
     }
 
     @ExceptionHandler(LegacyUnavailableException.class)

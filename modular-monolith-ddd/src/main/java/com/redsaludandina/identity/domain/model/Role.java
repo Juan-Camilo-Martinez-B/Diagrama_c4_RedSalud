@@ -8,6 +8,7 @@ package com.redsaludandina.identity.domain.model;
  *   <li>Paciente: solo su propia historia.</li>
  *   <li>Médico rural: recursos de SU centro y de pacientes con los que tiene relación de atención.</li>
  *   <li>Especialista: recursos de su especialidad (si el recurso exige una) y de pacientes relacionados.</li>
+ *   <li>Administrativo: nunca accede a datos clínicos. La denegación queda auditada.</li>
  * </ul>
  */
 public enum Role {
@@ -51,6 +52,18 @@ public enum Role {
             return user.attributes().coversSpecialty(resource.requiredSpecialty())
                     ? requireRelation(user, resource)
                     : AccessDecision.deny("El recurso es de otra especialidad");
+        }
+    },
+
+    ADMINISTRATOR {
+        @Override
+        boolean acceptsAttributes(AccessAttributes attributes) {
+            return true;
+        }
+
+        @Override
+        AccessDecision evaluate(User user, ClinicalResource resource) {
+            return AccessDecision.deny("Un rol administrativo no tiene acceso clínico");
         }
     };
 

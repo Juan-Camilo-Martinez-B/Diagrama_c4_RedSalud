@@ -4,7 +4,6 @@ import com.redsaludandina.insights.application.port.AccessLogReader;
 import com.redsaludandina.insights.application.port.AccessLogWriter;
 import com.redsaludandina.insights.application.query.AccessLogLine;
 import com.redsaludandina.insights.domain.audit.AccessRecord;
-import com.redsaludandina.insights.domain.audit.AccessType;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -90,15 +89,15 @@ public final class S3ObjectLockAccessLog implements AccessLogWriter, AccessLogRe
     }
 
     @Override
-    public List<AccessLogLine> clinicalReadsOf(String resource) {
+    public List<AccessLogLine> entriesOf(String resource) {
         return s3.listObjectsV2Paginator(listing -> listing.bucket(bucket).prefix(prefixOf(resource)))
                 .contents().stream()
                 .map(S3Object::key)
                 .map(key -> s3.getObjectAsBytes(read -> read.bucket(bucket).key(key)).asUtf8String())
                 .map(content -> json.readValue(content, StoredRecord.class))
-                .filter(stored -> AccessType.CLINICAL_READ.name().equals(stored.type()))
                 .sorted(Comparator.comparing(StoredRecord::occurredAt).thenComparing(stored -> stored.id().toString()))
-                .map(stored -> new AccessLogLine(stored.userId(), stored.reason(), stored.occurredAt()))
+                .map(stored -> new AccessLogLine(stored.userId(), stored.reason(), stored.occurredAt(), stored.type(),
+                        stored.detail()))
                 .toList();
     }
 }

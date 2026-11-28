@@ -8,6 +8,8 @@ public final class Headers {
 
     public static final String USER = "X-User-Id";
     public static final String IDEMPOTENCY_KEY = "Idempotency-Key";
+    /** Frescura visible de la copia de lectura del legado (Caso §3). */
+    public static final String DATA_FRESHNESS = "X-Data-Freshness";
 
     private Headers() {
     }

@@ -1,0 +1,7 @@
+# Ejemplo versionado de GET /insights/access-log?resource=episode/01ARZ3NDEKTSV4RRFFQ69G5FAV
+# La suite ModularMonolithIntegrationTest produce filas de esta forma.
+
+userId=med-1     type=CLINICAL_READ            reason=Control
+userId=admin-1   type=ACCESS_DENIED            reason=Un rol administrativo no tiene acceso clínico
+userId=system:sync type=CLINICAL_VALUE_DISCARDED reason=Resolución last-writer-wins
+  detail=field=FINDINGS; kept="38,5" (...); discarded="37,9" (...)

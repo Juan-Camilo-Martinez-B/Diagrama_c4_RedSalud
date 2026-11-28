@@ -10,8 +10,8 @@ import org.springframework.data.repository.query.Param;
 /** Repositorio Spring Data del lado de LECTURA de la evidencia: proyecta al DTO. */
 public interface AccessRecordQueryRepository extends Repository<AccessRecordEntity, UUID> {
 
-    @Query("select new com.redsaludandina.insights.application.query.AccessLogLine(a.userId, a.reason, a.occurredAt)"
-            + " from AccessRecordEntity a where a.resource = :resource and a.type = 'CLINICAL_READ'"
-            + " order by a.occurredAt, a.id")
-    List<AccessLogLine> findClinicalReads(@Param("resource") String resource);
+    @Query("select new com.redsaludandina.insights.application.query.AccessLogLine("
+            + "a.userId, a.reason, a.occurredAt, a.type, a.detail)"
+            + " from AccessRecordEntity a where a.resource = :resource order by a.occurredAt, a.id")
+    List<AccessLogLine> findByResource(@Param("resource") String resource);
 }

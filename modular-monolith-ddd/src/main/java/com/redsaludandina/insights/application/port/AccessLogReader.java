@@ -6,6 +6,6 @@ import java.util.List;
 /** Lado de lectura de la evidencia de accesos (puerto de salida). */
 public interface AccessLogReader {
 
-    /** Lecturas clínicas del recurso, de la más antigua a la más reciente. */
-    List<AccessLogLine> clinicalReadsOf(String resource);
+    /** Evidencia del recurso, de la más antigua a la más reciente: lecturas, denegaciones y conflictos. */
+    List<AccessLogLine> entriesOf(String resource);
 }

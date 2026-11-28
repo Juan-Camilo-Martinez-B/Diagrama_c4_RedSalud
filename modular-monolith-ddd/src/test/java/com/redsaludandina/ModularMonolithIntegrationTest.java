@@ -1,9 +1,10 @@
 package com.redsaludandina;
 
 import static com.redsaludandina.TestIds.ulid;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -101,11 +102,12 @@ class ModularMonolithIntegrationTest {
 
         read("/episodes/" + episode + "?reason=Control", "med-1")
                 .andExpect(status().isOk()).andExpect(jsonPath("$.care.REASON").value("Dolor torácico"));
-        read("/episodes/" + episode + "?reason=Curiosidad", "no-profile").andExpect(status().isForbidden());
+        read("/episodes/" + episode + "?reason=Curiosidad", "admin-1").andExpect(status().isForbidden());
         relayUntilQuiet();
         read("/insights/access-log?resource=episode/" + episode, "auditor")
-                .andExpect(jsonPath("$[*].userId").value(hasItem("med-1")))
-                .andExpect(jsonPath("$[*].userId").value(not(hasItem("no-profile"))));
+                .andExpect(jsonPath("$[?(@.type=='CLINICAL_READ')].userId").value(hasItem("med-1")))
+                .andExpect(jsonPath("$[?(@.type=='ACCESS_DENIED')].userId").value(hasItem("admin-1")))
+                .andExpect(jsonPath("$[?(@.userId=='admin-1')].reason").value(hasItem(containsString("administrativo"))));
     }
 
     @Test
@@ -127,10 +129,17 @@ class ModularMonolithIntegrationTest {
         send(post("/episodes/sync").header(Headers.IDEMPOTENCY_KEY, "batch-201"), batch)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.replayed").value(true));
+        send(post("/episodes/sync").header(Headers.IDEMPOTENCY_KEY, "batch-201"), batch)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.replayed").value(true));
         send(post("/episodes/sync").header(Headers.IDEMPOTENCY_KEY, "batch-201"), "{\"centerId\":\"centro-a\",\"items\":[]}")
                 .andExpect(status().is(422))
                 .andExpect(jsonPath("$.code").value("IDEMPOTENCY_KEY_REUSED"));
 
+        relayUntilQuiet();
+        read("/insights/access-log?resource=episode/" + episode, "auditor")
+                .andExpect(jsonPath("$[?(@.type=='CLINICAL_VALUE_DISCARDED')].detail").value(hasItem(containsString("38,5"))))
+                .andExpect(jsonPath("$[?(@.type=='CLINICAL_VALUE_DISCARDED')].detail").value(hasItem(containsString("37,9"))));
         read("/episodes/" + episode + "?reason=Revisar", "med-1").andExpect(jsonPath("$.care.FINDINGS").value("38,5"));
     }
 
@@ -157,6 +166,7 @@ class ModularMonolithIntegrationTest {
     void theLegacyHistoryIsTranslatedCachedAndAudited() throws Exception {
         read("/legacy/history/" + PATIENT + "?centerId=" + CENTER + "&reason=Antecedentes", "med-1")
                 .andExpect(status().isOk())
+                .andExpect(header().string(Headers.DATA_FRESHNESS, containsString("fresh=true")))
                 .andExpect(jsonPath("$.episodes.length()").value(2))
                 .andExpect(jsonPath("$.episodes[*].description").value(hasItem("(sin glosa)")))
                 .andExpect(jsonPath("$.fresh").value(true));

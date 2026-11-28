@@ -4,6 +4,12 @@ import com.redsaludandina.legacy.application.port.HistoryReadModelReader;
 import com.redsaludandina.legacy.application.port.HistoryReadModelWriter;
 import com.redsaludandina.legacy.application.port.LegacyHistorySource;
 import com.redsaludandina.legacy.infrastructure.acl.adapter.LegacyHistoryAdapter;
+import com.redsaludandina.legacy.infrastructure.acl.adapter.ResilientLegacyHistorySource;
+import com.redsaludandina.legacy.infrastructure.acl.readmodel.CachingHistoryReadModelReader;
+import com.redsaludandina.legacy.infrastructure.acl.readmodel.CachingHistoryReadModelWriter;
+import com.redsaludandina.legacy.infrastructure.acl.readmodel.InProcessSharedHistoryCache;
+import com.redsaludandina.legacy.infrastructure.acl.readmodel.SharedHistoryCache;
+import com.redsaludandina.legacy.infrastructure.acl.readmodel.TwoLevelHistoryCache;
 import com.redsaludandina.legacy.infrastructure.acl.client.db.LegacyDbClient;
 import com.redsaludandina.legacy.infrastructure.acl.client.soap.LegacySoapClient;
 import com.redsaludandina.legacy.infrastructure.acl.job.JobStateRepository;
@@ -58,17 +64,27 @@ public class AclConfiguration {
 
     @Bean
     LegacyHistorySource legacyHistorySource(LegacyDbClient client, CanonicalTranslator translator) {
-        return new LegacyHistoryAdapter(client, translator);
+        return ResilientLegacyHistorySource.around(new LegacyHistoryAdapter(client, translator));
     }
 
     @Bean
-    HistoryReadModelWriter historyReadModelWriter(HistoryReadModelJpaRepository jpa) {
-        return new JpaHistoryReadModelWriter(jpa, JSON);
+    SharedHistoryCache sharedHistoryCache() {
+        return new InProcessSharedHistoryCache();
     }
 
     @Bean
-    HistoryReadModelReader historyReadModelReader(HistoryReadModelQueryRepository queries) {
-        return new JpaHistoryReadModelReader(queries, JSON);
+    TwoLevelHistoryCache historyCache(SharedHistoryCache shared) {
+        return new TwoLevelHistoryCache(shared);
+    }
+
+    @Bean
+    HistoryReadModelWriter historyReadModelWriter(HistoryReadModelJpaRepository jpa, TwoLevelHistoryCache cache) {
+        return new CachingHistoryReadModelWriter(new JpaHistoryReadModelWriter(jpa, JSON), cache);
+    }
+
+    @Bean
+    HistoryReadModelReader historyReadModelReader(HistoryReadModelQueryRepository queries, TwoLevelHistoryCache cache) {
+        return new CachingHistoryReadModelReader(new JpaHistoryReadModelReader(queries, JSON), cache);
     }
 
     @Bean

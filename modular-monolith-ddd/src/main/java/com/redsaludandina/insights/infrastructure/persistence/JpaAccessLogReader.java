@@ -13,7 +13,7 @@ public final class JpaAccessLogReader implements AccessLogReader {
     }
 
     @Override
-    public List<AccessLogLine> clinicalReadsOf(String resource) {
-        return queries.findClinicalReads(resource);
+    public List<AccessLogLine> entriesOf(String resource) {
+        return queries.findByResource(resource);
     }
 }

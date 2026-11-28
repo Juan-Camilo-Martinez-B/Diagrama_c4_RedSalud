@@ -45,6 +45,14 @@ class RoleTest {
     }
 
     @Test
+    void anAdministratorNeverReadsClinicalData() {
+        User admin = new User("admin-1", Role.ADMINISTRATOR, new AccessAttributes(null, null, Set.of()));
+
+        assertThat(allowed(admin, EPISODE)).isFalse();
+        assertThat(POLICY.evaluate(Optional.of(admin), EPISODE).reason()).contains("administrativo");
+    }
+
+    @Test
     void aUserWithoutProfileIsDeniedAndIncompleteProfilesAreInvalid() {
         assertThat(POLICY.evaluate(Optional.empty(), EPISODE).allowed()).isFalse();
         assertThatThrownBy(() -> new User("med-9", Role.RURAL_DOCTOR, new AccessAttributes(null, null, Set.of())))

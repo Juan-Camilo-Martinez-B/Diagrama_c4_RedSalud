@@ -24,12 +24,24 @@ public sealed interface OfflineChange {
             target.open().handle(new OpenEpisodeCommand(ClinicalId.of(episodeId), patientId,
                     ClinicalId.ofNullable(slotId), centerId));
         }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("OPEN_EPISODE", CanonicalText.field(episodeId), CanonicalText.field(patientId),
+                    CanonicalText.field(slotId));
+        }
     }
 
     record RecordCare(String episodeId, String field, String text, Instant stampedAt) implements OfflineChange {
         @Override
         public void applyTo(OfflineChangeTarget target, String centerId) {
             target.recordCare().handle(new RecordCareCommand(ClinicalId.of(episodeId), field, text, centerId, stampedAt));
+        }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("RECORD_CARE", CanonicalText.field(episodeId), CanonicalText.field(field),
+                    CanonicalText.field(text), stampedAt == null ? "" : stampedAt.toString());
         }
     }
 
@@ -40,12 +52,23 @@ public sealed interface OfflineChange {
             target.attachFile().handle(new AttachFileCommand(ClinicalId.of(episodeId), ClinicalId.of(attachmentId),
                     type, storageKey, sha256));
         }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("ATTACH_FILE", CanonicalText.field(episodeId), CanonicalText.field(attachmentId),
+                    CanonicalText.field(type), CanonicalText.field(storageKey), CanonicalText.field(sha256));
+        }
     }
 
     record CloseTeleconsultation(String episodeId) implements OfflineChange {
         @Override
         public void applyTo(OfflineChangeTarget target, String centerId) {
             target.close().handle(new CloseTeleconsultationCommand(ClinicalId.of(episodeId)));
+        }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("CLOSE_TELECONSULTATION", CanonicalText.field(episodeId));
         }
     }
 
@@ -54,12 +77,23 @@ public sealed interface OfflineChange {
         public void applyTo(OfflineChangeTarget target, String centerId) {
             throw requiresServer();
         }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("BOOK_SLOT", CanonicalText.field(slotId), CanonicalText.field(bookingId),
+                    CanonicalText.field(patientId));
+        }
     }
 
     record SignPrescription(String prescriptionId) implements OfflineChange {
         @Override
         public void applyTo(OfflineChangeTarget target, String centerId) {
             throw requiresServer();
+        }
+
+        @Override
+        public String toString() {
+            return CanonicalText.join("SIGN_PRESCRIPTION", CanonicalText.field(prescriptionId));
         }
     }
 

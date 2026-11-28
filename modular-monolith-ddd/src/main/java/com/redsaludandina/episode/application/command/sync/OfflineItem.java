@@ -5,4 +5,13 @@ package com.redsaludandina.episode.application.command.sync;
  * cambios de un mismo agregado (por ejemplo: abrir, registrar, cerrar).
  */
 public record OfflineItem(String changeId, String aggregateId, long sequence, OfflineChange change) {
+
+    /**
+     * Forma estable entre instancias. El orden de los campos es parte del contrato de la huella.
+     */
+    @Override
+    public String toString() {
+        return CanonicalText.join("ITEM", CanonicalText.field(changeId), CanonicalText.field(aggregateId),
+                Long.toString(sequence), change == null ? "" : change.toString());
+    }
 }

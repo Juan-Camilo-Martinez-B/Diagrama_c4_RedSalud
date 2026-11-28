@@ -16,6 +16,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,31 @@ class SyncOfflineBatchHandlerTest {
     void theSameBatchIsReplayedWithoutApplyingAnything() {
         handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", batch()));
         applied.clear();
+
+        handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", batch()));
+
+        assertThat(applied).isEmpty();
+        assertThat(stored.get("k-1").replayed()).isTrue();
+    }
+
+    @Test
+    void theSameBatchInAnotherOrderIsTheSameDelivery() {
+        handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", batch()));
+        applied.clear();
+        List<OfflineItem> reversed = new ArrayList<>(batch());
+        Collections.reverse(reversed);
+
+        handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", reversed));
+
+        assertThat(applied).isEmpty();
+        assertThat(stored.get("k-1").replayed()).isTrue();
+    }
+
+    @Test
+    void aNewHandlerReplaysFromTheStoredReceipt() {
+        handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", batch()));
+        applied.clear();
+        setUp();
 
         handler.handle(new SyncOfflineBatchCommand("k-1", "centro-a", batch()));
 
